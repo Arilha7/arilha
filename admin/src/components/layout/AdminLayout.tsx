@@ -19,6 +19,24 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
 
+  // Auto-recovery for Next.js ChunkLoadError when deployment hashes update
+  useEffect(() => {
+    const handleChunkError = (event: ErrorEvent) => {
+      const isChunkError =
+        event.message?.includes('Loading chunk') ||
+        event.message?.includes('ChunkLoadError') ||
+        (event.error && (event.error.name === 'ChunkLoadError' || event.error.message?.includes('Loading chunk')));
+
+      if (isChunkError) {
+        console.warn('ChunkLoadError detected. Reloading page to fetch fresh assets...');
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('error', handleChunkError);
+    return () => window.removeEventListener('error', handleChunkError);
+  }, []);
+
   useEffect(() => {
     // If on login page, skip authentication check
     if (pathname === '/login') {
@@ -29,7 +47,8 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
     const token = authService.getStoredToken();
 
     if (!token) {
-      router.push('/login');
+      setIsLoading(false);
+      router.replace('/login');
       return;
     }
 
@@ -51,7 +70,8 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
       .catch((err) => {
         if (err?.status === 401) {
           setUser(null);
-          router.push('/login');
+          setIsLoading(false);
+          router.replace('/login');
         }
       })
       .finally(() => {
