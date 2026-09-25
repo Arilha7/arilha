@@ -6,26 +6,94 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { authService } from '@/services/authService';
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton';
-import { User, Lock, Mail, ArrowRight, X, CheckCircle2 } from 'lucide-react';
+import { User, Lock, Mail, Phone, ArrowRight, X, CheckCircle2, ShieldCheck, KeyRound } from 'lucide-react';
 
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTarget = searchParams?.get('redirect') || '/account';
 
+  // Mode: 'OTP' | 'PASSWORD'
+  const [authMode, setAuthMode] = useState<'OTP' | 'PASSWORD'>('OTP');
+
+  // Password Login State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Passwordless OTP State
+  const [otpIdentifier, setOtpIdentifier] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpStep, setOtpStep] = useState<'SEND' | 'VERIFY'>('SEND');
+  const [isOtpSending, setIsOtpSending] = useState(false);
+  const [isOtpVerifying, setIsOtpVerifying] = useState(false);
+  const [otpMessage, setOtpMessage] = useState<string | null>(null);
+  const [devOtpHint, setDevOtpHint] = useState<string | null>(null);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Forgot password modal state
+  React.useEffect(() => {
+    document.title = 'Sign In | ARILHA';
+  }, []);
+
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [isForgotSending, setIsForgotSending] = useState(false);
   const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
   const [forgotError, setForgotError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Handle Send OTP
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpIdentifier.trim()) return;
+
+    setIsOtpSending(true);
+    setError(null);
+    setOtpMessage(null);
+    setDevOtpHint(null);
+
+    try {
+      const res = await authService.sendOtp(otpIdentifier.trim());
+      if (res.success) {
+        setOtpStep('VERIFY');
+        setOtpMessage(res.message || `OTP dispatched to ${otpIdentifier}.`);
+        if (res.data?.dev_otp) {
+          setDevOtpHint(res.data.dev_otp);
+        }
+      } else {
+        setError(res.message || 'Failed to send OTP.');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to send OTP.');
+    } finally {
+      setIsOtpSending(false);
+    }
+  };
+
+  // Handle Verify OTP
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpCode.trim()) return;
+
+    setIsOtpVerifying(true);
+    setError(null);
+
+    try {
+      const res = await authService.verifyOtp(otpIdentifier.trim(), otpCode.trim());
+      if (res.success) {
+        router.push(redirectTarget);
+      } else {
+        setError(res.message || 'Invalid or expired OTP.');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'OTP verification failed.');
+    } finally {
+      setIsOtpVerifying(false);
+    }
+  };
+
+  // Handle Password Login
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
@@ -70,15 +138,15 @@ function LoginFormContent() {
         <Link href="/" className="inline-block">
           <Image
             src="/logo.png"
-            alt="Femmeera"
+            alt="Arilha"
             width={200}
             height={65}
             className="h-16 w-auto mx-auto object-contain"
             priority
           />
         </Link>
-        <h1 className="text-2xl font-black uppercase tracking-tight text-neutral-900">Welcome Back</h1>
-        <p className="text-xs text-neutral-500">Sign in to your customer account to view order history</p>
+        <h1 className="text-2xl font-serif font-bold text-neutral-900">Welcome back</h1>
+        <p className="text-xs text-neutral-500">Sign in with your email address — no password required.</p>
       </div>
 
       {error && (
@@ -87,78 +155,217 @@ function LoginFormContent() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white border border-neutral-200/80 rounded-3xl p-6 space-y-4 shadow-xs">
-        <div className="space-y-1 text-xs">
-          <label className="font-bold text-neutral-700">Email Address</label>
-          <div className="relative">
-            <Mail className="w-4 h-4 absolute left-3 top-3 text-neutral-400" />
-            <input
-              type="email"
-              placeholder="customer@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full pl-9 pr-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-black"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-1 text-xs">
-          <div className="flex items-center justify-between">
-            <label className="font-bold text-neutral-700">Password</label>
-            <button
-              type="button"
-              onClick={() => {
-                setForgotEmail(email);
-                setForgotSuccess(null);
-                setForgotError(null);
-                setShowForgotModal(true);
-              }}
-              className="text-[11px] font-bold text-[#B38548] hover:underline"
-            >
-              Forgot Password?
-            </button>
-          </div>
-          <div className="relative">
-            <Lock className="w-4 h-4 absolute left-3 top-3 text-neutral-400" />
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full pl-9 pr-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-black"
-            />
-          </div>
-        </div>
-
+      {/* Auth Mode Toggle Tabs */}
+      <div className="bg-neutral-100 p-1 rounded-2xl flex text-xs font-bold">
         <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full py-3.5 bg-black text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-neutral-800 transition-colors shadow-md flex items-center justify-center space-x-2"
+          type="button"
+          onClick={() => {
+            setAuthMode('OTP');
+            setError(null);
+          }}
+          className={`flex-1 py-2.5 rounded-xl transition-all flex items-center justify-center space-x-1.5 ${
+            authMode === 'OTP'
+              ? 'bg-white text-neutral-900 shadow-xs'
+              : 'text-neutral-500 hover:text-neutral-900'
+          }`}
         >
-          <span>{isLoading ? 'Signing In...' : 'Sign In To Account'}</span>
-          <ArrowRight className="w-4 h-4" />
+          <KeyRound className="w-4 h-4 text-[#B38548]" />
+          <span>Email OTP (Passwordless)</span>
         </button>
 
-        <div className="relative py-1 flex items-center justify-center">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-neutral-200"></div>
+        <button
+          type="button"
+          onClick={() => {
+            setAuthMode('PASSWORD');
+            setError(null);
+          }}
+          className={`flex-1 py-2.5 rounded-xl transition-all flex items-center justify-center space-x-1.5 ${
+            authMode === 'PASSWORD'
+              ? 'bg-white text-neutral-900 shadow-xs'
+              : 'text-neutral-500 hover:text-neutral-900'
+          }`}
+        >
+          <Lock className="w-4 h-4 text-[#B38548]" />
+          <span>Password Sign In</span>
+        </button>
+      </div>
+
+      {/* PASSWORDLESS OTP FORM */}
+      {authMode === 'OTP' ? (
+        <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 space-y-4 shadow-xs">
+          {otpStep === 'SEND' ? (
+            <form onSubmit={handleSendOtp} className="space-y-4">
+              <div className="space-y-1.5 text-xs">
+                <label className="font-bold text-neutral-700">Enter your email address</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 absolute left-3.5 top-3.5 text-neutral-400" />
+                  <input
+                    type="email"
+                    placeholder="customer@gmail.com"
+                    value={otpIdentifier}
+                    onChange={(e) => setOtpIdentifier(e.target.value)}
+                    required
+                    className="w-full pl-10 pr-3.5 py-3 bg-neutral-50 border border-neutral-200 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-[#B38548]"
+                  />
+                </div>
+                <p className="text-[11px] text-neutral-400 pt-0.5">
+                  We’ll send a one-time verification code to your email.
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isOtpSending}
+                className="w-full py-3.5 bg-[#B38548] text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-[#966C32] transition-colors shadow-md flex items-center justify-center space-x-2"
+              >
+                <span>{isOtpSending ? 'Sending Code...' : 'Send OTP'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
+              {otpMessage && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs font-semibold text-amber-900 text-center">
+                  {otpMessage}
+                </div>
+              )}
+
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-neutral-700">Enter verification code</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpStep('SEND');
+                      setError(null);
+                    }}
+                    className="text-[11px] font-bold text-[#B38548] hover:underline"
+                  >
+                    Change Email
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  maxLength={6}
+                  placeholder="[ _ _ _ _ _ _ ]"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                  required
+                  className="w-full text-center py-3 bg-neutral-50 border border-neutral-200 rounded-xl font-mono text-xl font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-[#B38548]"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isOtpVerifying}
+                className="w-full py-3.5 bg-black text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-neutral-800 transition-colors shadow-md flex items-center justify-center space-x-2"
+              >
+                <span>{isOtpVerifying ? 'Verifying Code...' : 'Verify & Continue'}</span>
+                <ShieldCheck className="w-4 h-4" />
+              </button>
+
+              <div className="text-center pt-1">
+                <p className="text-xs text-neutral-500">
+                  Didn't receive the code?{' '}
+                  <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    disabled={isOtpSending}
+                    className="text-[#B38548] font-bold hover:underline"
+                  >
+                    Resend OTP
+                  </button>
+                </p>
+              </div>
+            </form>
+          )}
+
+          <div className="relative py-1 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-neutral-200"></div>
+            </div>
+            <span className="relative bg-white px-3 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              OR
+            </span>
           </div>
-          <span className="relative bg-white px-3 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-            OR
-          </span>
-        </div>
 
-        <GoogleAuthButton text="Continue with Google" onError={(msg) => setError(msg)} />
-
-        <div className="text-center pt-3 border-t border-neutral-100 text-xs text-neutral-500">
-          New to Femmeera?{' '}
-          <Link href="/register" className="font-bold text-black underline">
-            Create an Account
-          </Link>
+          <GoogleAuthButton text="Continue with Google" onError={(msg) => setError(msg)} />
         </div>
-      </form>
+      ) : (
+        /* PASSWORD LOGIN FORM */
+        <form onSubmit={handlePasswordSubmit} className="bg-white border border-neutral-200/80 rounded-3xl p-6 space-y-4 shadow-xs">
+          <div className="space-y-1 text-xs">
+            <label className="font-bold text-neutral-700">Email Address</label>
+            <div className="relative">
+              <Mail className="w-4 h-4 absolute left-3 top-3 text-neutral-400" />
+              <input
+                type="email"
+                placeholder="customer@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full pl-9 pr-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1 text-xs">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-neutral-700">Password</label>
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotEmail(email);
+                  setForgotSuccess(null);
+                  setForgotError(null);
+                  setShowForgotModal(true);
+                }}
+                className="text-[11px] font-bold text-[#B38548] hover:underline"
+              >
+                Forgot Password?
+              </button>
+            </div>
+            <div className="relative">
+              <Lock className="w-4 h-4 absolute left-3 top-3 text-neutral-400" />
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full pl-9 pr-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-3.5 bg-black text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-neutral-800 transition-colors shadow-md flex items-center justify-center space-x-2"
+          >
+            <span>{isLoading ? 'Signing In...' : 'Sign In To Account'}</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+
+          <div className="relative py-1 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-neutral-200"></div>
+            </div>
+            <span className="relative bg-white px-3 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              OR
+            </span>
+          </div>
+
+          <GoogleAuthButton text="Continue with Google" onError={(msg) => setError(msg)} />
+
+          <div className="text-center pt-3 border-t border-neutral-100 text-xs text-neutral-500">
+            New to Arilha?{' '}
+            <Link href="/register" className="font-bold text-black underline">
+              Create an Account
+            </Link>
+          </div>
+        </form>
+      )}
 
       {/* FORGOT PASSWORD MODAL POPUP */}
       {showForgotModal && (

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { authService } from '@/services/authService';
@@ -8,15 +8,19 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Lock, Mail, AlertCircle } from 'lucide-react';
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
+
+  useEffect(() => {
+    document.title = 'Admin Login | ARILHA Admin';
+  }, []);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const token = authService.getStoredToken();
     if (token) {
       router.replace('/dashboard');
@@ -58,7 +62,7 @@ export default function LoginPage() {
         <div className="text-center space-y-2">
           <Image
             src="/logo.png"
-            alt="Femmeera Admin"
+            alt="ARILHA Admin"
             width={200}
             height={65}
             className="h-14 w-auto mx-auto object-contain mb-2"
@@ -81,7 +85,7 @@ export default function LoginPage() {
           <Input
             label="Email Address"
             type="email"
-            placeholder="admin@femmeera.com"
+            placeholder="admin@arilha.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -105,8 +109,8 @@ export default function LoginPage() {
 
         {/* Quick Demo Credentials Info */}
         <div className="pt-4 border-t border-neutral-100 text-center text-[11px] text-neutral-400">
-          <p>Super Admin: <code className="text-neutral-700 bg-neutral-100 px-1 py-0.5 rounded">admin@femmeera.com</code></p>
-          <p className="mt-0.5">Password: <code className="text-neutral-700 bg-neutral-100 px-1 py-0.5 rounded">admin123</code></p>
+          <p>Super Admin: <code className="text-neutral-700 bg-neutral-100 px-1 py-0.5 rounded">admin@arilha.com</code></p>
+          <p className="mt-0.5">Password: <code className="text-neutral-700 bg-neutral-100 px-1 py-0.5 rounded">Admin@Arilha2026!</code></p>
         </div>
       </div>
     </div>

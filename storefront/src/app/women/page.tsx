@@ -6,8 +6,11 @@ import { ProductGrid } from '@/components/ui/ProductGrid';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Women\'s Fashion Collection | Femmeera',
-  description: 'Shop handcrafted traditional sarees, kurtis, western dresses and tops for women.',
+  title: 'Jewellery Collection | ARILHA',
+  description: 'Shop handcrafted gold-plated jewellery, anti-tarnish pieces, Kundan chokers, jhumkas and statement rings at ARILHA by Irsa Khan.',
+  alternates: {
+    canonical: 'https://arilha.com/women',
+  },
 };
 
 export default async function WomenPage() {
@@ -25,11 +28,11 @@ export default async function WomenPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-10">
       <div className="border-b border-neutral-200 pb-6 space-y-2">
-        <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block">
-          FEMMEERA EDIT
+        <span className="text-[10px] font-black uppercase tracking-widest text-[#B38548] block">
+          ARILHA EDIT
         </span>
         <h1 className="text-2xl sm:text-4xl font-black uppercase tracking-tight text-neutral-900">
-          Women's Clothing Collection
+          Women's Jewellery Collection
         </h1>
       </div>
 
@@ -41,7 +44,7 @@ export default async function WomenPage() {
 
       <div className="space-y-6 pt-6">
         <h2 className="text-xl font-black uppercase tracking-tight text-neutral-900">
-          Trending Women's Apparels
+          Trending Women's Jewellery
         </h2>
         <ProductGrid products={products} />
       </div>

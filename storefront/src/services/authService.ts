@@ -99,6 +99,38 @@ export const authService = {
     return localStorage.getItem('femmeera_customer_token');
   },
 
+  async sendOtp(identifier: string): Promise<ApiResponse<{ message: string; dev_otp?: string }>> {
+    return apiClient<{ message: string; dev_otp?: string }>('/auth/send-otp', {
+      method: 'POST',
+      body: JSON.stringify({ identifier: identifier.trim() }),
+    });
+  },
+
+  async verifyOtp(identifier: string, otp: string): Promise<ApiResponse<LoginResponse>> {
+    const guestSessionId = typeof window !== 'undefined' ? localStorage.getItem('femmeera_guest_session_id') : null;
+    const res = await apiClient<LoginResponse>('/auth/verify-otp', {
+      method: 'POST',
+      headers: {
+        'X-Guest-Session-ID': guestSessionId || '',
+      },
+      body: JSON.stringify({
+        identifier: identifier.trim(),
+        otp: otp.trim(),
+        guest_session_id: guestSessionId,
+      }),
+    });
+
+    if (res.success && res.data?.token) {
+      localStorage.setItem('femmeera_customer_token', res.data.token);
+      localStorage.setItem('femmeera_customer_user', JSON.stringify(res.data.user));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('femmeera-auth-updated'));
+      }
+    }
+
+    return res;
+  },
+
   async forgotPassword(email: string): Promise<ApiResponse<any>> {
     return apiClient<any>('/auth/forgot-password', {
       method: 'POST',

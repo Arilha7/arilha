@@ -23,10 +23,20 @@ export default function ShippingManagementPage() {
   const [savingPolicy, setSavingPolicy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
+  useEffect(() => {
+    document.title = 'Shipping & Fulfillment | ARILHA Admin';
+  }, []);
+
+  const [feeForm, setFeeForm] = useState({
+    cod_fee: 100,
+    prepaid_fee: 50,
+  });
+  const [savingFees, setSavingFees] = useState(false);
+
   const [policyForm, setPolicyForm] = useState({
-    title: 'Femmeera Shipping & Delivery Policy',
+    title: 'ARILHA Shipping & Delivery Policy',
     dispatch_time: '24 - 48 Hours',
-    free_shipping_threshold: 2000,
+    free_shipping_threshold: 1499,
     content: '',
   });
 
@@ -49,9 +59,15 @@ export default function ShippingManagementPage() {
       const json = await res.json();
       if (json.success && json.data) {
         setRules(json.data.rules || []);
+        if (json.data.cod_fee !== undefined) {
+          setFeeForm({
+            cod_fee: json.data.cod_fee ?? 100,
+            prepaid_fee: json.data.prepaid_fee ?? 50,
+          });
+        }
         if (json.data.policy) {
           setPolicyForm({
-            title: json.data.policy.title || 'Femmeera Shipping & Delivery Policy',
+            title: json.data.policy.title || 'ARILHA Shipping & Delivery Policy',
             dispatch_time: json.data.policy.dispatch_time || '24 - 48 Hours',
             free_shipping_threshold: json.data.policy.free_shipping_threshold || 2000,
             content: json.data.policy.content || '',
@@ -68,6 +84,29 @@ export default function ShippingManagementPage() {
   useEffect(() => {
     fetchShippingData();
   }, []);
+
+  const handleSaveFees = async () => {
+    setSavingFees(true);
+    const token = getAdminToken();
+    try {
+      const res = await fetch('http://localhost:8000/api/v1/admin/shipping-fees', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(feeForm),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast('Default payment shipping charges updated successfully!');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSavingFees(false);
+    }
+  };
 
   const handleSavePolicy = async () => {
     setSavingPolicy(true);
@@ -295,8 +334,53 @@ export default function ShippingManagementPage() {
           </Card>
         </div>
 
-        {/* Shipping Policy Panel */}
-        <div>
+        {/* Column 2: Payment Method Charges + Shipping Policy Panel */}
+        <div className="space-y-6">
+          <Card title="Payment Method Default Shipping Charges" subtitle="Configured defaults for Prepaid vs Cash on Delivery">
+            <div className="space-y-4 text-xs">
+              <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200/80 space-y-1">
+                <span className="font-bold text-neutral-900 block">Prepaid Payments (UPI / Credit & Debit Cards)</span>
+                <p className="text-[11px] text-neutral-500">Google Pay, PhonePe, Paytm, BHIM, Visa, Mastercard, RuPay</p>
+                <div className="pt-2">
+                  <label className="font-bold text-neutral-700 block mb-1">Prepaid Shipping Charge (₹)</label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    value={feeForm.prepaid_fee}
+                    onChange={(e) => setFeeForm({ ...feeForm, prepaid_fee: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:border-black font-bold text-emerald-700 bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200/80 space-y-1">
+                <span className="font-bold text-neutral-900 block">Cash on Delivery (COD)</span>
+                <p className="text-[11px] text-neutral-500">Pay cash upon order delivery at door</p>
+                <div className="pt-2">
+                  <label className="font-bold text-neutral-700 block mb-1">COD Shipping Charge (₹)</label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    value={feeForm.cod_fee}
+                    onChange={(e) => setFeeForm({ ...feeForm, cod_fee: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:border-black font-bold text-amber-700 bg-white"
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={handleSaveFees}
+                disabled={savingFees}
+                className="w-full py-2.5 bg-black text-white font-bold rounded-lg hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                <span>{savingFees ? 'Saving Charges...' : 'Save Default Shipping Charges'}</span>
+              </button>
+            </div>
+          </Card>
+
           <Card title="Shipping Policy Settings" subtitle="Displayed on public /shipping-policy page">
             <div className="space-y-4 text-xs">
               <div>

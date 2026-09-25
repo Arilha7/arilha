@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, Shirt, Warehouse, FolderTree } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Shirt, Warehouse, Layers } from 'lucide-react';
 
 export const MobileBottomNav: React.FC = () => {
   const pathname = usePathname();
@@ -13,7 +13,7 @@ export const MobileBottomNav: React.FC = () => {
     { label: 'Orders', href: '/dashboard/orders', icon: <ShoppingBag className="w-5 h-5" /> },
     { label: 'Products', href: '/dashboard/products', icon: <Shirt className="w-5 h-5" /> },
     { label: 'Stock', href: '/dashboard/inventory', icon: <Warehouse className="w-5 h-5" /> },
-    { label: 'Category', href: '/dashboard/categories', icon: <FolderTree className="w-5 h-5" /> },
+    { label: 'Collections', href: '/dashboard/collections', icon: <Layers className="w-5 h-5 text-[#B38548]" /> },
   ];
 
   return (

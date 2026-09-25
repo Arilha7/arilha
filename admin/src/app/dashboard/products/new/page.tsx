@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { productService } from '@/services/productService';
 import { categoryService } from '@/services/categoryService';
+import { collectionService, Collection } from '@/services/collectionService';
 import { mediaService } from '@/services/mediaService';
 import { Category } from '@/types';
 import { Card } from '@/components/ui/Card';
@@ -12,7 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { useToast } from '@/components/ui/Toast';
-import { ChevronDown, ChevronUp, ImagePlus, Trash2, ArrowLeft, CheckCircle2, Plus, Sparkles, Palette } from 'lucide-react';
+import { ChevronDown, ChevronUp, ImagePlus, Trash2, ArrowLeft, CheckCircle2, Plus, Sparkles, Palette, Layers } from 'lucide-react';
 import Link from 'next/link';
 
 export interface ColorGroup {
@@ -52,6 +53,8 @@ export default function AddProductPage() {
   const { showToast } = useToast();
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<number[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -75,7 +78,7 @@ export default function AddProductPage() {
     description: '',
     short_description: '',
     category_id: '',
-    brand: 'Femmeera',
+    brand: 'ARILHA',
     gender: 'WOMEN',
     status: 'ACTIVE',
     is_featured: false,
@@ -115,6 +118,14 @@ export default function AddProductPage() {
         }
       })
       .finally(() => setIsLoadingCategories(false));
+
+    collectionService
+      .getCollections()
+      .then((res) => {
+        if (res.success && res.data) {
+          setCollections(res.data);
+        }
+      });
   }, []);
 
   // Update Matrix Data when colors or sizes change
@@ -344,6 +355,7 @@ export default function AddProductPage() {
         name: formData.name,
         slug: formData.slug || `product-${uniqueSuffix}`,
         category_id: Number(formData.category_id),
+        collection_ids: selectedCollectionIds,
         description: formData.description,
         short_description: formData.short_description,
         brand: formData.brand || 'Femmeera',
@@ -428,6 +440,44 @@ export default function AddProductPage() {
                   onChange={(e) => setFormData((p) => ({ ...p, category_id: e.target.value }))}
                   required
                 />
+              </div>
+
+              {/* Collections Multi-Select Checklist */}
+              <div className="space-y-2 p-3 bg-[#FAF6F0] rounded-xl border border-[#B38548]/30">
+                <label className="font-bold text-xs text-neutral-900 flex items-center space-x-1.5">
+                  <Layers className="w-4 h-4 text-[#B38548]" />
+                  <span>Assigned Collections (Select Multiple)</span>
+                </label>
+                <p className="text-[11px] text-neutral-500">
+                  Select all collections this product should belong to (e.g. Earrings, Diwali Edit, New Arrivals, Best Sellers).
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                  {collections.map((col) => {
+                    const isChecked = selectedCollectionIds.includes(col.id);
+                    return (
+                      <label
+                        key={col.id}
+                        className={`flex items-center space-x-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
+                          isChecked
+                            ? 'bg-amber-100/80 border-amber-400 font-bold text-neutral-900'
+                            : 'bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            setSelectedCollectionIds((prev) =>
+                              prev.includes(col.id) ? prev.filter((id) => id !== col.id) : [...prev, col.id]
+                            );
+                          }}
+                          className="rounded border-neutral-300 text-[#B38548] focus:ring-[#B38548] w-4 h-4"
+                        />
+                        <span className="truncate">{col.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -628,9 +678,14 @@ export default function AddProductPage() {
 
                     {/* Per-Color Photos Gallery */}
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-neutral-700 block">
-                        Upload Product Photos for <span className="text-[#B38548] font-black">{cg.name}</span>:
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-neutral-700 block">
+                          Upload Product Photos for <span className="text-[#B38548] font-black">{cg.name}</span>:
+                        </label>
+                        <span className="text-[10px] text-neutral-500 font-semibold">
+                          1st Photo = Main Template | 2nd Photo = Hover View
+                        </span>
+                      </div>
 
                       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                         {cg.images.map((img, idx) => (
@@ -639,13 +694,23 @@ export default function AddProductPage() {
                             <button
                               type="button"
                               onClick={() => removeColorImage(cg.id, idx)}
-                              className="absolute top-1.5 right-1.5 p-1 bg-rose-600 text-white rounded-full opacity-90 hover:opacity-100"
+                              className="absolute top-1.5 right-1.5 p-1 bg-rose-600 text-white rounded-full opacity-90 hover:opacity-100 z-10"
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
                             {idx === 0 && (
-                              <span className="absolute bottom-1.5 left-1.5 bg-black/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                                Cover
+                              <span className="absolute bottom-1.5 left-1.5 bg-[#B38548] text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow">
+                                1ST: MAIN
+                              </span>
+                            )}
+                            {idx === 1 && (
+                              <span className="absolute bottom-1.5 left-1.5 bg-neutral-900 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow">
+                                2ND: HOVER
+                              </span>
+                            )}
+                            {idx > 1 && (
+                              <span className="absolute bottom-1.5 left-1.5 bg-neutral-700/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow">
+                                #{idx + 1}
                               </span>
                             )}
                           </div>

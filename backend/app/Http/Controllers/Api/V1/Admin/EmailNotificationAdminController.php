@@ -25,8 +25,8 @@ class EmailNotificationAdminController extends Controller
                 'smtp_config' => [
                     'host' => env('MAIL_HOST', '127.0.0.1'),
                     'port' => env('MAIL_PORT', 587),
-                    'from_address' => env('MAIL_FROM_ADDRESS', 'no-reply@femmeera.com'),
-                    'from_name' => env('MAIL_FROM_NAME', 'Femmeera Store'),
+                    'from_address' => env('MAIL_FROM_ADDRESS', 'no-reply@arilha.com'),
+                    'from_name' => env('MAIL_FROM_NAME', 'ARILHA'),
                     'encryption' => env('MAIL_ENCRYPTION', 'tls'),
                     'has_username' => !empty(env('MAIL_USERNAME')),
                 ],
@@ -68,7 +68,7 @@ class EmailNotificationAdminController extends Controller
             'test_email' => 'nullable|email',
         ]);
 
-        $recipientEmail = $request->input('test_email', env('ADMIN_NOTIFICATION_EMAIL', 'admin@femmeera.com'));
+        $recipientEmail = $request->input('test_email', env('ADMIN_NOTIFICATION_EMAIL', 'admin@arilha.com'));
 
         $result = $mailer->testSmtpConnection($recipientEmail);
 

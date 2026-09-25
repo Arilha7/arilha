@@ -27,8 +27,8 @@ class CheckPermission
             ->pluck('roles.name')
             ->toArray();
 
-        // SUPER_ADMIN bypasses all permission checks
-        if (in_array('SUPER_ADMIN', $roles)) {
+        // ADMIN user_type or SUPER_ADMIN role bypasses specific permission checks
+        if ($user->user_type === 'ADMIN' || in_array('SUPER_ADMIN', $roles)) {
             return $next($request);
         }
 

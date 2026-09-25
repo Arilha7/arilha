@@ -13,7 +13,7 @@ export const PromoPopupModal: React.FC = () => {
 
   useEffect(() => {
     // Check session storage so modal isn't repetitive in same session
-    const hasSeenPopup = sessionStorage.getItem('femmeera_popup_dismissed');
+    const hasSeenPopup = sessionStorage.getItem('arilha_popup_dismissed') || sessionStorage.getItem('femmeera_popup_dismissed');
     if (hasSeenPopup) return;
 
     cmsService.getPopup().then((res) => {
@@ -28,6 +28,7 @@ export const PromoPopupModal: React.FC = () => {
 
   const handleClose = () => {
     setIsOpen(false);
+    sessionStorage.setItem('arilha_popup_dismissed', 'true');
     sessionStorage.setItem('femmeera_popup_dismissed', 'true');
   };
 

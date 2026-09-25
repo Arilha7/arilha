@@ -6,7 +6,8 @@ import Image from 'next/image';
 import {
   Menu,
   Bell,
-  User as UserIcon,
+  Search,
+  ChevronDown,
   LogOut,
   ShoppingBag,
   AlertTriangle,
@@ -49,9 +50,10 @@ export const AdminNavbar: React.FC<AdminNavbarProps> = ({ user, onOpenMobileMenu
   // Poll live & total visitors count every 4 seconds
   useEffect(() => {
     const fetchVisitorStats = async () => {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.arilha.com/api/v1';
       const urls = [
-        'https://api.femmeera.com/api/v1/visitor/stats',
-        'https://api.femmeera.com/api/v1/admin/analytics/visitors',
+        `${apiBaseUrl}/visitor/stats`,
+        `${apiBaseUrl}/admin/analytics/visitors`,
       ];
 
       for (const url of urls) {
@@ -76,7 +78,6 @@ export const AdminNavbar: React.FC<AdminNavbarProps> = ({ user, onOpenMobileMenu
     return () => clearInterval(interval);
   }, []);
 
-  // Initial Sample Notifications (Simulating live store events)
   const [notifications, setNotifications] = useState<NotificationItem[]>([
     {
       id: '1',
@@ -100,23 +101,13 @@ export const AdminNavbar: React.FC<AdminNavbarProps> = ({ user, onOpenMobileMenu
       id: '3',
       type: 'user',
       title: 'New Customer Registered',
-      description: 'Priya Verma created a new account on Femmeera Store.',
+      description: 'Priya Verma created a new account on ARILHA Store.',
       time: '2h ago',
       link: '/dashboard/customers',
       isRead: false,
     },
-    {
-      id: '4',
-      type: 'payment',
-      title: 'Payment Confirmed',
-      description: 'Razorpay payment ₹1,899 verified for Order #FEM-9398.',
-      time: '3h ago',
-      link: '/dashboard/payments',
-      isRead: true,
-    },
   ]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
@@ -170,9 +161,9 @@ export const AdminNavbar: React.FC<AdminNavbarProps> = ({ user, onOpenMobileMenu
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-neutral-200/80 px-4 sm:px-6 h-16 flex items-center justify-between shadow-xs">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-neutral-200/70 px-4 sm:px-6 h-16 flex items-center justify-between shadow-2xs">
+      {/* Left: Brand Logo & Mobile Toggle */}
       <div className="flex items-center space-x-3 sm:space-x-4">
-        {/* Mobile Hamburger Button */}
         <button
           onClick={onOpenMobileMenu}
           className="lg:hidden p-2 text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors focus:outline-none"
@@ -181,55 +172,70 @@ export const AdminNavbar: React.FC<AdminNavbarProps> = ({ user, onOpenMobileMenu
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Brand Title */}
         <Link href="/dashboard" className="flex items-center space-x-2">
           <Image
             src="/logo.png"
-            alt="Femmeera Admin"
-            width={150}
-            height={48}
-            className="h-9 w-auto object-contain"
+            alt="ARILHA"
+            width={140}
+            height={44}
+            className="h-8 w-auto object-contain"
             priority
           />
-          <span className="hidden sm:inline-block text-xs font-semibold text-neutral-500 uppercase tracking-widest border-l border-neutral-200 pl-2.5">
-            Admin Panel
-          </span>
         </Link>
+      </div>
+
+      {/* Center: Search bar */}
+      <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
+        <div className="relative w-full">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <input
+            type="text"
+            placeholder="Search anything..."
+            className="w-full bg-neutral-50/80 hover:bg-neutral-100/70 focus:bg-white border border-neutral-200/80 rounded-full pl-10 pr-16 py-2 text-xs text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#B38548]/30 focus:border-[#B38548] transition-all"
+          />
+          <kbd className="absolute right-3 top-1/2 -translate-y-1/2 bg-white border border-neutral-200 text-[10px] font-medium text-neutral-400 px-1.5 py-0.5 rounded shadow-2xs">
+            Ctrl /
+          </kbd>
+        </div>
       </div>
 
       {/* Right Header Controls */}
       <div className="flex items-center space-x-2 sm:space-x-3">
-        {/* Live Visitors & Total Visitors Badges (Before Notifications Section) */}
-        <div className="flex items-center space-x-1.5 sm:space-x-2 mr-1 sm:mr-2">
-          {/* Live Visitors Badge */}
-          <div
-            className="flex items-center space-x-1 px-2 sm:px-2.5 py-1 bg-emerald-50 border border-emerald-200/80 rounded-full text-emerald-800 text-xs font-bold shadow-2xs"
-            title="Real-Time Active Visitors on Femmeera Storefront"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="font-sans text-[10px] sm:text-[11px] uppercase tracking-wider text-emerald-700 font-black">Live:</span>
-            <span className="font-mono font-extrabold text-emerald-900">{visitorStats.live_visitors}</span>
-          </div>
-
-          {/* Total Visitors Badge */}
-          <div
-            className="flex items-center space-x-1 px-2 sm:px-2.5 py-1 bg-neutral-100 border border-neutral-200/80 rounded-full text-neutral-800 text-xs font-bold shadow-2xs"
-            title="All-Time Total Unique Visitors Count"
-          >
-            <Users className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
-            <span className="font-sans text-[10px] sm:text-[11px] uppercase tracking-wider text-neutral-500 font-black">Total:</span>
-            <span className="font-mono font-extrabold text-neutral-900">{visitorStats.total_visitors.toLocaleString()}</span>
-          </div>
+        {/* Live Active Visitor Badge */}
+        <div
+          className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 bg-emerald-50 border border-emerald-200/80 rounded-full text-emerald-800 text-xs font-bold shadow-2xs"
+          title="Real-Time Active Visitors on ARILHA Storefront"
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span className="font-sans text-[10px] uppercase tracking-wider text-emerald-700 font-extrabold">🟢 Live Active:</span>
+          <span className="font-mono font-black text-emerald-950">{visitorStats.live_visitors}</span>
         </div>
 
-        {/* Interactive Notifications Icon & Popover */}
+        {/* Total Visitors Counter Badge */}
+        <div
+          className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 bg-neutral-100 border border-neutral-200/80 rounded-full text-neutral-800 text-xs font-bold shadow-2xs"
+          title="All-Time Total Unique Visitors Count"
+        >
+          <Users className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+          <span className="font-sans text-[10px] uppercase tracking-wider text-neutral-500 font-extrabold">👥 Total Visitors:</span>
+          <span className="font-mono font-black text-neutral-900">{visitorStats.total_visitors.toLocaleString()}</span>
+        </div>
+
+        {/* Live Store Status Dropdown Pill */}
+        <div className="hidden lg:flex items-center space-x-1.5 bg-neutral-50 border border-neutral-200/80 px-3 py-1.5 rounded-full text-xs text-neutral-700 font-semibold cursor-pointer hover:bg-neutral-100 transition-colors">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>Live Store</span>
+          <ChevronDown className="w-3.5 h-3.5 text-neutral-400 ml-0.5" />
+        </div>
+
+        {/* Notifications Icon */}
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => setIsNotifOpen((prev) => !prev)}
-            className="relative p-2 text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors focus:outline-none"
+            className="relative p-2 text-neutral-600 hover:bg-neutral-100 rounded-full transition-colors focus:outline-none"
             title="Notifications"
           >
             <Bell className="w-5 h-5 text-neutral-700" />
@@ -243,7 +249,6 @@ export const AdminNavbar: React.FC<AdminNavbarProps> = ({ user, onOpenMobileMenu
           {/* Notifications Dropdown Panel */}
           {isNotifOpen && (
             <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-neutral-200/80 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-              {/* Header */}
               <div className="p-3.5 bg-neutral-900 text-white flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Bell className="w-4 h-4 text-amber-400" />
@@ -265,7 +270,6 @@ export const AdminNavbar: React.FC<AdminNavbarProps> = ({ user, onOpenMobileMenu
                 )}
               </div>
 
-              {/* Tabs */}
               <div className="flex border-b border-neutral-100 bg-neutral-50/80 p-1 gap-1 text-xs">
                 <button
                   onClick={() => setActiveTab('all')}
@@ -299,7 +303,6 @@ export const AdminNavbar: React.FC<AdminNavbarProps> = ({ user, onOpenMobileMenu
                 </button>
               </div>
 
-              {/* Notifications List */}
               <div className="max-h-80 overflow-y-auto divide-y divide-neutral-100">
                 {filteredNotifications.length === 0 ? (
                   <div className="p-6 text-center text-neutral-400 space-y-1">
@@ -321,11 +324,7 @@ export const AdminNavbar: React.FC<AdminNavbarProps> = ({ user, onOpenMobileMenu
                       }`}
                     >
                       <div className="flex items-start space-x-3">
-                        <div
-                          className={`p-2 rounded-xl border flex-shrink-0 ${getBg(
-                            notif.type
-                          )}`}
-                        >
+                        <div className={`p-2 rounded-xl border flex-shrink-0 ${getBg(notif.type)}`}>
                           {getIcon(notif.type)}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -355,7 +354,6 @@ export const AdminNavbar: React.FC<AdminNavbarProps> = ({ user, onOpenMobileMenu
                 )}
               </div>
 
-              {/* Footer */}
               <div className="p-2.5 bg-neutral-50 border-t border-neutral-100 flex items-center justify-between text-xs">
                 <Link
                   href="/dashboard/settings/email-notifications"
@@ -377,18 +375,22 @@ export const AdminNavbar: React.FC<AdminNavbarProps> = ({ user, onOpenMobileMenu
           )}
         </div>
 
-        {/* User Info & Avatar */}
-        <div className="flex items-center space-x-2 pl-2 border-l border-neutral-200">
-          <div className="w-8 h-8 rounded-full bg-neutral-900 text-white flex items-center justify-center font-bold text-xs">
-            {user?.name ? user.name.charAt(0).toUpperCase() : <UserIcon className="w-4 h-4" />}
+        {/* User Profile Avatar & Info */}
+        <div className="flex items-center space-x-3 pl-2 border-l border-neutral-200/80">
+          <div className="w-9 h-9 rounded-full bg-neutral-900 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+            {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
           </div>
-          <div className="hidden md:block text-left">
-            <p className="text-xs font-bold text-neutral-900 leading-tight">{user?.name || 'Admin User'}</p>
-            <p className="text-[11px] font-medium text-neutral-500">{user?.roles?.[0] || 'Administrator'}</p>
+          <div className="hidden lg:block text-left">
+            <p className="text-xs font-bold text-neutral-900 leading-tight">
+              {user?.name || 'ARILHA Administrator'}
+            </p>
+            <p className="text-[10px] font-semibold text-neutral-400">
+              {user?.roles?.[0] || 'Super Admin'}
+            </p>
           </div>
           <button
             onClick={() => authService.logout()}
-            className="p-1.5 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+            className="p-1.5 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1"
             title="Logout"
           >
             <LogOut className="w-4 h-4" />

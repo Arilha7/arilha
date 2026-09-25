@@ -83,23 +83,38 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             </button>
           </div>
 
-          {/* Free Shipping Progress Bar */}
+          {/* Dynamic Free Gift & Free Shipping Progress Bar */}
           {cart && (
-            <div className="bg-amber-50/80 px-4 sm:px-5 py-3 border-b border-amber-100 text-xs sm:text-sm text-amber-900">
-              <div className="flex items-center gap-1.5 font-medium mb-1.5">
-                <Truck className="w-4 h-4 text-amber-700 shrink-0" />
-                {amountNeeded > 0 ? (
-                  <span>Add <strong className="text-amber-800 font-bold">₹{amountNeeded.toFixed(0)}</strong> more for <strong className="font-bold">FREE Delivery!</strong></span>
-                ) : (
-                  <span className="text-emerald-700 font-bold">🎉 Congratulations! You qualify for FREE Delivery!</span>
-                )}
-              </div>
-              <div className="w-full bg-amber-200/60 rounded-full h-2 overflow-hidden">
-                <div 
-                  className="bg-amber-600 h-full transition-all duration-500 rounded-full"
-                  style={{ width: `${freeShippingProgress}%` }}
-                />
-              </div>
+            <div className="bg-[#FAF4EB] px-4 sm:px-5 py-3 border-b border-[#EFE6D8] text-xs text-neutral-900 space-y-2">
+              {/* Free Gift Progress Bar */}
+              {(() => {
+                const giftThreshold = cart.free_gift?.threshold || 899;
+                const subtotal = cart.subtotal || 0;
+                const giftProgress = Math.min(100, Math.round((subtotal / giftThreshold) * 100));
+                const remainingForGift = Math.max(0, giftThreshold - subtotal);
+
+                return (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between font-medium text-[11px]">
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm">🎁</span>
+                        {remainingForGift > 0 ? (
+                          <span>Add <strong className="text-[#B38548] font-bold">₹{remainingForGift.toFixed(0)}</strong> more to unlock your <strong className="font-bold uppercase text-[#B38548]">FREE GIFT</strong></span>
+                        ) : (
+                          <span className="text-emerald-700 font-bold">🎉 FREE GIFT UNLOCKED — Choose your gift at checkout!</span>
+                        )}
+                      </div>
+                      <span className="font-mono font-bold text-[10px] text-neutral-600">₹{subtotal.toFixed(0)} / ₹{giftThreshold.toFixed(0)}</span>
+                    </div>
+                    <div className="w-full bg-[#EFE6D8] rounded-full h-2 overflow-hidden">
+                      <div 
+                        className={`h-full transition-all duration-500 rounded-full ${remainingForGift === 0 ? 'bg-emerald-600' : 'bg-[#B38548]'}`}
+                        style={{ width: `${giftProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 

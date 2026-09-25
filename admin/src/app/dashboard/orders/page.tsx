@@ -26,6 +26,10 @@ export default function OrdersPage() {
   const [lastPage, setLastPage] = useState(1);
 
   useEffect(() => {
+    document.title = 'Orders | ARILHA Admin';
+  }, []);
+
+  useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
       setCurrentPage(1);

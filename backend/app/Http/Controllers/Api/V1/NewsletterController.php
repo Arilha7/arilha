@@ -47,9 +47,9 @@ class NewsletterController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Thank you for subscribing to Femmeera! Use promo code WELCOME10 for 10% off your first order.',
+            'message' => 'Thank you for subscribing to ARILHA! Use promo code ARILHA10 for 10% off your first order.',
             'data' => [
-                'coupon_code' => 'WELCOME10',
+                'coupon_code' => 'ARILHA10',
                 'discount' => '10% OFF',
             ],
         ], 200);

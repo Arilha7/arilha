@@ -7,13 +7,13 @@ export function VisitorTracker() {
     if (typeof window === 'undefined') return;
 
     // Generate or retrieve persistent visitor session ID
-    let sessionId = localStorage.getItem('femmeera_visitor_session_id');
+    let sessionId = localStorage.getItem('arilha_visitor_session_id') || localStorage.getItem('femmeera_visitor_session_id');
     if (!sessionId) {
       sessionId = 'vs_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
-      localStorage.setItem('femmeera_visitor_session_id', sessionId);
+      localStorage.setItem('arilha_visitor_session_id', sessionId);
     }
 
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.femmeera.com/api/v1';
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.arilha.com/api/v1';
 
     const sendHeartbeat = () => {
       fetch(`${apiBaseUrl}/visitor/heartbeat`, {

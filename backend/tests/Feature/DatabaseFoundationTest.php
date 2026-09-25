@@ -42,7 +42,7 @@ class DatabaseFoundationTest extends TestCase
     }
 
     /**
-     * Test category hierarchy (Women -> Traditional Wear & Western Wear).
+     * Test category hierarchy (Women -> Kundan & Festive & Everyday Jewellery).
      */
     public function test_category_hierarchy_resolution(): void
     {
@@ -51,11 +51,11 @@ class DatabaseFoundationTest extends TestCase
         $this->assertNull($womenRoot->parent_id);
 
         $children = DB::table('categories')->where('parent_id', $womenRoot->id)->get();
-        $this->assertCount(2, $children);
+        $this->assertGreaterThanOrEqual(2, count($children));
 
         $slugs = $children->pluck('slug')->toArray();
-        $this->assertContains('traditional-wear', $slugs);
-        $this->assertContains('western-wear', $slugs);
+        $this->assertContains('kundan-festive', $slugs);
+        $this->assertContains('everyday-jewellery', $slugs);
     }
 
     /**

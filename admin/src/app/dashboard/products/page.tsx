@@ -32,6 +32,10 @@ export default function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isArchiving, setIsArchiving] = useState(false);
 
+  useEffect(() => {
+    document.title = 'Products | ARILHA Admin';
+  }, []);
+
   // Debounce search input
   useEffect(() => {
     const handler = setTimeout(() => {

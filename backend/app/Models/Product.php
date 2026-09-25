@@ -36,6 +36,13 @@ class Product extends Model
         return $this->belongsTo(Category::class, 'category_id');
     }
 
+    public function collections()
+    {
+        return $this->belongsToMany(Collection::class, 'collection_product')
+                    ->withPivot('sort_order')
+                    ->withTimestamps();
+    }
+
     public function variants()
     {
         return $this->hasMany(ProductVariant::class, 'product_id');
@@ -44,5 +51,15 @@ class Product extends Model
     public function images()
     {
         return $this->hasMany(ProductImage::class, 'product_id')->orderBy('sort_order', 'asc');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'product_id');
+    }
+
+    public function approvedReviews()
+    {
+        return $this->hasMany(Review::class, 'product_id')->where('status', 'APPROVED');
     }
 }

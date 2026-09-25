@@ -10,7 +10,7 @@ const defaultFallbackReels: PublicReel[] = [
     id: 101,
     title: 'Festive Silk Lehenga Collection',
     video_url: 'https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-a-pink-outfit-41221-large.mp4',
-    product_url: '/women/traditional-wear',
+    product_url: '/collections/diwali',
     button_text: 'View Product',
     sort_order: 1,
   },
@@ -18,7 +18,7 @@ const defaultFallbackReels: PublicReel[] = [
     id: 102,
     title: 'Royal Ethnic Anarkali Suit Set',
     video_url: 'https://assets.mixkit.co/videos/preview/mixkit-model-posing-in-a-fashion-photoshoot-41224-large.mp4',
-    product_url: '/women/traditional-wear',
+    product_url: '/collections/diwali',
     button_text: 'View Product',
     sort_order: 2,
   },
@@ -26,7 +26,7 @@ const defaultFallbackReels: PublicReel[] = [
     id: 103,
     title: 'Modern Western Couture Edit',
     video_url: 'https://assets.mixkit.co/videos/preview/mixkit-fashion-model-posing-for-a-camera-41222-large.mp4',
-    product_url: '/women/western-wear',
+    product_url: '/collections/earrings',
     button_text: 'View Product',
     sort_order: 3,
   },
@@ -67,7 +67,7 @@ export const WatchAndShopSection: React.FC = () => {
   if (reels.length === 0) return null;
 
   return (
-    <section className="py-5 sm:py-20 bg-[#FAF6F0] border-t border-b border-[#EFE6D8] text-neutral-900 relative">
+    <section className="py-5 sm:py-20 bg-white border-t border-b border-[#EFE6D8] text-neutral-900 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
 
         {/* Section Header Matching Store Aesthetic */}
@@ -127,26 +127,24 @@ export const WatchAndShopSection: React.FC = () => {
                   <Maximize2 className="w-3.5 h-3.5" />
                 </div>
 
-                {/* Reel Title Overlay */}
-                <div className="absolute bottom-16 inset-x-0 px-4 z-10">
-                  <h3 className="text-xs font-black text-white leading-snug drop-shadow-md line-clamp-2">
+                {/* Reel Title & Liquid Glass View Product CTA Overlay inside video */}
+                <div className="absolute bottom-4 inset-x-0 px-3 z-10 space-y-2.5">
+                  <h3 className="text-xs font-bold text-white leading-snug drop-shadow-md line-clamp-2">
                     {reel.title}
                   </h3>
-                </div>
-              </div>
 
-              {/* View Product CTA Button */}
-              <div className="p-3 bg-[#FAF6F0] border-t border-[#EFE6D8]">
-                <Link
-                  href={reel.product_url}
-                  className="flex items-center justify-between w-full py-2.5 px-3 bg-black text-white hover:bg-[#B38548] rounded-xl text-[11px] font-black uppercase tracking-wider transition-colors shadow-sm"
-                >
-                  <span className="flex items-center gap-1.5 truncate">
-                    <ShoppingBag className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                    <span className="truncate">{reel.button_text || 'View Product'}</span>
-                  </span>
-                  <ArrowRight className="w-3.5 h-3.5 shrink-0" />
-                </Link>
+                  <Link
+                    href={reel.product_url}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center justify-between w-full py-2 px-3 bg-white/20 hover:bg-white/35 backdrop-blur-md border border-white/30 hover:border-amber-300/70 text-white rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all duration-300 shadow-lg hover:shadow-amber-500/10 group-hover:bg-white/30"
+                  >
+                    <span className="flex items-center gap-1.5 truncate">
+                      <ShoppingBag className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                      <span className="truncate">{reel.button_text || 'View Product'}</span>
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 shrink-0 text-amber-200" />
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
@@ -177,7 +175,7 @@ export const WatchAndShopSection: React.FC = () => {
             <div className="relative z-20 p-4 flex items-center justify-between">
               <div className="flex items-center space-x-2 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 text-xs font-bold text-amber-300">
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>Femmeera Reel</span>
+                <span>ARILHA Reel</span>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -209,17 +207,17 @@ export const WatchAndShopSection: React.FC = () => {
                 </h3>
               </div>
 
-              {/* Direct View Product Link */}
+              {/* Direct View Product Liquid Glass Link */}
               <Link
                 href={activeModalReel.product_url}
                 onClick={closeReelModal}
-                className="flex items-center justify-between w-full py-3.5 px-5 bg-white text-black hover:bg-amber-400 rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-300 shadow-2xl"
+                className="flex items-center justify-between w-full py-3.5 px-5 bg-white/25 hover:bg-white/40 backdrop-blur-md border border-white/40 text-white rounded-2xl text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-2xl hover:border-amber-300/80"
               >
                 <span className="flex items-center gap-2">
-                  <ShoppingBag className="w-4 h-4 text-black" />
+                  <ShoppingBag className="w-4 h-4 text-amber-300" />
                   <span>{activeModalReel.button_text || 'View Product'}</span>
                 </span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 text-amber-200" />
               </Link>
             </div>
           </div>

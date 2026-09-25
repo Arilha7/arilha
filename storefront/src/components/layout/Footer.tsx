@@ -11,33 +11,33 @@ export const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
   const [subscribeMsg, setSubscribeMsg] = useState<string | null>(null);
-  const [logoUrl, setLogoUrl] = useState('/logo.png');
+  const [logoUrl, setLogoUrl] = useState('');
   const [storePhone, setStorePhone] = useState('+91 98765 43210');
-  const [storeEmail, setStoreEmail] = useState('hello@femmeera.com');
-  const [storeAddress, setStoreAddress] = useState('Bangalore, India');
+  const [storeEmail, setStoreEmail] = useState('support@arilha.com');
+  const [storeAddress, setStoreAddress] = useState('India');
   const [socials, setSocials] = useState({
-    instagram: 'https://instagram.com',
-    facebook: 'https://facebook.com',
+    instagram: 'https://www.instagram.com/arilha.co/',
+    facebook: 'https://www.facebook.com/profile.php?id=61593964537005',
     whatsapp: '',
-    youtube: '',
-    pinterest: '',
-    twitter: '',
+    youtube: 'https://www.youtube.com/@arilha_co',
+    pinterest: 'https://www.pinterest.com/Arilha_co',
+    twitter: 'https://x.com/arilha_co',
   });
 
   useEffect(() => {
     settingService.getSettings().then((res) => {
       if (res.success && res.data) {
-        if (res.data.store_logo) setLogoUrl(res.data.store_logo);
+        setLogoUrl(res.data.store_logo || '');
         if (res.data.store_phone) setStorePhone(res.data.store_phone);
         if (res.data.store_email) setStoreEmail(res.data.store_email);
         if (res.data.store_address) setStoreAddress(res.data.store_address);
         setSocials({
-          instagram: res.data.social_instagram || 'https://instagram.com',
-          facebook: res.data.social_facebook || 'https://facebook.com',
+          instagram: res.data.social_instagram || 'https://www.instagram.com/arilha.co/',
+          facebook: res.data.social_facebook || 'https://www.facebook.com/profile.php?id=61593964537005',
           whatsapp: res.data.social_whatsapp || '',
-          youtube: res.data.social_youtube || '',
-          pinterest: res.data.social_pinterest || '',
-          twitter: res.data.social_twitter || '',
+          youtube: res.data.social_youtube || 'https://www.youtube.com/@arilha_co',
+          pinterest: res.data.social_pinterest || 'https://www.pinterest.com/Arilha_co',
+          twitter: res.data.social_twitter || 'https://x.com/arilha_co',
         });
       }
     });
@@ -62,7 +62,7 @@ export const Footer: React.FC = () => {
         setSubscribeMsg(res.message || 'Subscription failed. Please try again.');
       }
     } catch {
-      setSubscribeMsg('Thank you for subscribing! Use code WELCOME10 for 10% off your first order.');
+      setSubscribeMsg('Thank you for subscribing to the ARILHA newsletter!');
       setEmail('');
     } finally {
       setSubscribing(false);
@@ -77,10 +77,10 @@ export const Footer: React.FC = () => {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
             <span className="text-[10px] font-sans font-bold tracking-[0.2em] text-[#B38548] uppercase block">
-              STAY IN STYLE
+              STAY IN TOUCH
             </span>
             <h3 className="font-serif text-xl sm:text-2xl text-neutral-900 font-medium">
-              Subscribe & get 10% off on your first order!
+              Subscribe &amp; get 10% off on your first order!
             </h3>
           </div>
 
@@ -108,7 +108,7 @@ export const Footer: React.FC = () => {
         </div>
         {subscribeMsg && (
           <p className="text-center text-xs font-semibold text-emerald-700 mt-2">
-            🎉 {subscribeMsg}
+            ✨ {subscribeMsg}
           </p>
         )}
       </div>
@@ -118,18 +118,31 @@ export const Footer: React.FC = () => {
         
         {/* Brand Summary */}
         <div className="col-span-2 md:col-span-2 lg:col-span-1 space-y-4">
-          <Link href="/" className="inline-block">
-            <Image
-              src={logoUrl}
-              alt="Femmeera - Dress to Express"
-              width={200}
-              height={65}
-              className="h-14 w-auto object-contain"
-            />
-          </Link>
+          {logoUrl ? (
+            <Link href="/" className="inline-block">
+              <img
+                src={logoUrl}
+                alt="ARILHA by Irsa Khan Logo"
+                className="h-14 w-auto object-contain"
+              />
+            </Link>
+          ) : (
+            <Link href="/" className="inline-block group">
+              <div className="flex flex-col items-start justify-center">
+                <div className="flex items-center space-x-1">
+                  <span className="font-serif text-2xl sm:text-3xl font-bold tracking-[0.18em] text-neutral-900 group-hover:text-[#B38548] transition-colors relative">
+                    AR<span className="relative">I<span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[10px] text-[#C59B58]">✦</span></span>LHA
+                  </span>
+                </div>
+                <span className="text-[10px] sm:text-[11px] font-serif italic text-neutral-500 tracking-wider -mt-1 pl-0.5">
+                  by Irsa Khan
+                </span>
+              </div>
+            </Link>
+          )}
 
           <p className="text-neutral-600 leading-relaxed text-[11px]">
-            Timeless fashion for the modern woman. Tradition & style, crafted for you.
+            Modern Indian jewellery designed for everyday wear, celebrations and every version of you. ARILHA by Irsa Khan.
           </p>
 
           {/* Social Media Icons */}
@@ -144,24 +157,19 @@ export const Footer: React.FC = () => {
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M9 8H6v4h3v12h5V12h3.642L18 8h-4V6.333C14 5.374 14.5 5 15.5 5H18V0h-3.808C10.592 0 9 1.592 9 4.417V8z"/></svg>
               </a>
             )}
-            {socials.whatsapp && (
-              <a href={socials.whatsapp} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full border border-[#E8DEC8] bg-white flex items-center justify-center text-[#25D366] hover:border-[#25D366] transition-colors" aria-label="WhatsApp">
-                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
-              </a>
-            )}
-            {socials.youtube && (
-              <a href={socials.youtube} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full border border-[#E8DEC8] bg-white flex items-center justify-center text-[#FF0000] hover:border-[#FF0000] transition-colors" aria-label="YouTube">
-                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-              </a>
-            )}
             {socials.pinterest && (
-              <a href={socials.pinterest} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full border border-[#E8DEC8] bg-white flex items-center justify-center text-[#E60023] hover:border-[#E60023] transition-colors" aria-label="Pinterest">
-                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C24.007 5.367 18.624 0 12.017 0z"/></svg>
+              <a href={socials.pinterest} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full border border-[#E8DEC8] bg-white flex items-center justify-center text-neutral-700 hover:text-[#B38548] hover:border-[#B38548] transition-colors" aria-label="Pinterest">
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.02 0 1.513.769 1.513 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.367 18.62 0 12.017 0z"/></svg>
               </a>
             )}
             {socials.twitter && (
-              <a href={socials.twitter} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full border border-[#E8DEC8] bg-white flex items-center justify-center text-neutral-800 hover:text-black hover:border-black transition-colors" aria-label="Twitter / X">
-                <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              <a href={socials.twitter} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full border border-[#E8DEC8] bg-white flex items-center justify-center text-neutral-700 hover:text-[#B38548] hover:border-[#B38548] transition-colors" aria-label="X (Twitter)">
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              </a>
+            )}
+            {socials.youtube && (
+              <a href={socials.youtube} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full border border-[#E8DEC8] bg-white flex items-center justify-center text-neutral-700 hover:text-[#B38548] hover:border-[#B38548] transition-colors" aria-label="YouTube">
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
               </a>
             )}
           </div>
@@ -174,11 +182,11 @@ export const Footer: React.FC = () => {
           </h4>
           <ul className="space-y-2 text-neutral-600 text-[11px]">
             <li><Link href="/shop" className="hover:text-[#B38548] transition-colors">New Arrivals</Link></li>
-            <li><Link href="/women/traditional-wear" className="hover:text-[#B38548] transition-colors">Sarees</Link></li>
-            <li><Link href="/women/traditional-wear" className="hover:text-[#B38548] transition-colors">Lehengas</Link></li>
-            <li><Link href="/women/traditional-wear" className="hover:text-[#B38548] transition-colors">Kurtis</Link></li>
-            <li><Link href="/women/western-wear" className="hover:text-[#B38548] transition-colors">Western Wear</Link></li>
-            <li><Link href="/shop" className="hover:text-[#B38548] transition-colors">Sale</Link></li>
+            <li><Link href="/collections/earrings" className="hover:text-[#B38548] transition-colors">Earrings &amp; Jhumkas</Link></li>
+            <li><Link href="/collections/necklaces" className="hover:text-[#B38548] transition-colors">Necklaces &amp; Chains</Link></li>
+            <li><Link href="/collections/bracelets" className="hover:text-[#B38548] transition-colors">Bracelets &amp; Bangles</Link></li>
+            <li><Link href="/collections/rings" className="hover:text-[#B38548] transition-colors">Rings</Link></li>
+            <li><Link href="/collections/diwali" className="hover:text-[#B38548] transition-colors">Kundan &amp; Bridal</Link></li>
           </ul>
         </div>
 
@@ -189,10 +197,9 @@ export const Footer: React.FC = () => {
           </h4>
           <ul className="space-y-2 text-neutral-600 text-[11px]">
             <li><Link href="/account/orders" className="hover:text-[#B38548] transition-colors">Track Order</Link></li>
-            <li><Link href="/return-policy" className="hover:text-[#B38548] transition-colors">Returns & Exchanges</Link></li>
+            <li><Link href="/return-policy" className="hover:text-[#B38548] transition-colors">Returns &amp; Exchanges</Link></li>
             <li><Link href="/shipping-policy" className="hover:text-[#B38548] transition-colors">Shipping Policy</Link></li>
-            <li><Link href="/return-policy" className="hover:text-[#B38548] transition-colors">Return Policy</Link></li>
-            <li><Link href="/faq" className="hover:text-[#B38548] transition-colors">FAQ's</Link></li>
+            <li><Link href="/faq" className="hover:text-[#B38548] transition-colors">Jewellery Care &amp; FAQ</Link></li>
             <li><Link href="/contact" className="hover:text-[#B38548] transition-colors">Contact Us</Link></li>
           </ul>
         </div>
@@ -203,10 +210,12 @@ export const Footer: React.FC = () => {
             ABOUT
           </h4>
           <ul className="space-y-2 text-neutral-600 text-[11px]">
-            <li><Link href="/about" className="hover:text-[#B38548] transition-colors">About Us</Link></li>
-            <li><Link href="/about" className="hover:text-[#B38548] transition-colors">Our Story</Link></li>
+            <li><Link href="/about" className="hover:text-[#B38548] transition-colors">About ARILHA</Link></li>
+            <li><Link href="/about#our-story" className="hover:text-[#B38548] transition-colors">Meet Irsa Khan</Link></li>
+            <li><Link href="/blog" className="hover:text-[#B38548] transition-colors">Blog</Link></li>
+            <li><Link href="/journal" className="hover:text-[#B38548] transition-colors">Jewellery Journal</Link></li>
             <li><Link href="/privacy" className="hover:text-[#B38548] transition-colors">Privacy Policy</Link></li>
-            <li><Link href="/terms" className="hover:text-[#B38548] transition-colors">Terms & Conditions</Link></li>
+            <li><Link href="/terms" className="hover:text-[#B38548] transition-colors">Terms of Service</Link></li>
           </ul>
         </div>
 
@@ -216,10 +225,6 @@ export const Footer: React.FC = () => {
             CONTACT US
           </h4>
           <ul className="space-y-2.5 text-neutral-600 text-[11px]">
-            <li className="flex items-center space-x-2">
-              <Phone className="w-3.5 h-3.5 text-[#B38548] shrink-0" />
-              <span>{storePhone}</span>
-            </li>
             <li className="flex items-center space-x-2">
               <Mail className="w-3.5 h-3.5 text-[#B38548] shrink-0" />
               <span>{storeEmail}</span>
@@ -240,7 +245,7 @@ export const Footer: React.FC = () => {
       {/* Bottom Bar with Payment Icons */}
       <div className="border-t border-[#EFE6D8] py-6 px-4 sm:px-6 bg-[#FAF4EB]">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-neutral-500">
-          <p>© 2026 Femmeera. All Rights Reserved.</p>
+          <p>© {new Date().getFullYear()} ARILHA by Irsa Khan. All Rights Reserved.</p>
 
           {/* Payment Method Badges */}
           <div className="flex items-center space-x-2">
@@ -248,10 +253,10 @@ export const Footer: React.FC = () => {
             <span className="px-2 py-1 bg-white border border-[#E8DEC8] rounded font-bold text-[10px] text-orange-600">Mastercard</span>
             <span className="px-2 py-1 bg-white border border-[#E8DEC8] rounded font-bold text-[10px] text-green-700">RuPay</span>
             <span className="px-2 py-1 bg-white border border-[#E8DEC8] rounded font-bold text-[10px] text-[#B38548]">UPI</span>
+            <span className="px-2 py-1 bg-white border border-[#E8DEC8] rounded font-bold text-[10px] text-neutral-800">COD</span>
           </div>
         </div>
       </div>
-
     </footer>
   );
 };

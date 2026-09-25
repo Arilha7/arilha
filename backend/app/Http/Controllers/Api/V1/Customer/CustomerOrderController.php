@@ -82,6 +82,54 @@ class CustomerOrderController extends Controller
     }
 
     /**
+     * GET /api/v1/customer/orders/{id}
+     * Authenticated endpoint to view a specific customer order.
+     * Enforces strict BOLA / IDOR protection.
+     */
+    public function show(Request $request, string $id): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        $order = Order::where(function ($query) use ($id) {
+                $query->where('id', $id)
+                    ->orWhere('order_number', $id);
+            })
+            ->with(['items.product.images', 'latestPayment', 'statusHistory'])
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found.',
+            ], 404);
+        }
+
+        // BOLA / IDOR Protection
+        $userEmail = strtolower(trim($user->email ?? ''));
+        $shippingEmail = strtolower(trim($order->shipping_address_snapshot['email'] ?? ''));
+        $isOwner = ($order->user_id === $user->id) || (!empty($userEmail) && $shippingEmail === $userEmail);
+
+        if (!$isOwner) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access to order details.',
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order details retrieved successfully.',
+            'data' => $order,
+        ], 200);
+    }
+
+    /**
      * GET /api/v1/orders/lookup/{orderNumber}
      * Fetches single order details and auto-links to customer account if email matches.
      */
@@ -99,13 +147,30 @@ class CustomerOrderController extends Controller
             ], 404);
         }
 
-        // Auto-link order to customer user_id if email matches and user_id is empty
+        $shippingEmail = strtolower(trim($order->shipping_address_snapshot['email'] ?? ''));
         $authUser = $request->user();
+
         if ($authUser) {
-            $shippingEmail = strtolower($order->shipping_address_snapshot['email'] ?? '');
-            if (empty($order->user_id) && ($shippingEmail === strtolower($authUser->email))) {
+            $authEmail = strtolower(trim($authUser->email ?? ''));
+            if (empty($order->user_id) && !empty($shippingEmail) && ($shippingEmail === $authEmail)) {
                 $order->user_id = $authUser->id;
                 $order->save();
+            }
+
+            $isOwner = ($order->user_id === $authUser->id) || (!empty($authEmail) && $shippingEmail === $authEmail);
+            if (!$isOwner) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized access to order details.',
+                ], 403);
+            }
+        } else {
+            $providedEmail = strtolower(trim($request->query('email', '')));
+            if (!empty($providedEmail) && $providedEmail !== $shippingEmail) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized access to order details.',
+                ], 403);
             }
         }
 

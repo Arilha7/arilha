@@ -243,7 +243,7 @@ class ShiprocketService
             'billing_pincode' => $address['pincode'] ?? '560001',
             'billing_state' => $address['state'] ?? 'Karnataka',
             'billing_country' => 'India',
-            'billing_email' => $order->user->email ?? 'customer@femmeera.com',
+            'billing_email' => $order->user->email ?? 'customer@arilha.com',
             'billing_phone' => $rawPhone,
             'shipping_is_billing' => true,
             'order_items' => $orderItems,

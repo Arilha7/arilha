@@ -57,6 +57,34 @@ export interface CartPayload {
   total: number;
   currency: string;
   currency_symbol: string;
+  free_gift?: {
+    eligible: boolean;
+    reason: string;
+    message: string;
+    threshold: number;
+    options: {
+      gift_id: number;
+      product_id: number;
+      variant_id: number;
+      title: string;
+      description?: string;
+      image_url: string;
+      stock: number;
+      claimed_count: number;
+      reference_price: number;
+    }[];
+    selected_gift?: {
+      gift_item_id?: number | null;
+      product_id: number;
+      variant_id: number;
+      product_name: string;
+      sku: string;
+      size: string;
+      color: string;
+      image_url: string;
+      reference_price: number;
+    } | null;
+  };
   validation_notices: string[];
 }
 
@@ -72,25 +100,54 @@ export const getGuestSessionId = (): string => {
   return id;
 };
 
+let globalCartCache: CartPayload | null = null;
+let globalCartPromise: Promise<ApiResponse<CartPayload>> | null = null;
+
 export const cartService = {
   getGuestSessionId,
 
-  async getCart(couponCode?: string, shippingMethodId?: number): Promise<ApiResponse<CartPayload>> {
+  getCachedCart(): CartPayload | null {
+    return globalCartCache;
+  },
+
+  updateCache(payload: CartPayload) {
+    globalCartCache = payload;
+  },
+
+  async getCart(couponCode?: string, shippingMethodId?: number, forceRefresh = false): Promise<ApiResponse<CartPayload>> {
+    if (!forceRefresh && globalCartCache && !couponCode && !shippingMethodId) {
+      return { success: true, data: globalCartCache };
+    }
+    if (globalCartPromise && !forceRefresh) {
+      return globalCartPromise;
+    }
+
     const guestId = getGuestSessionId();
     const query = new URLSearchParams();
     if (couponCode) query.append('coupon_code', couponCode);
     if (shippingMethodId) query.append('shipping_method_id', shippingMethodId.toString());
 
-    return apiClient<CartPayload>(`/cart?${query.toString()}`, {
+    globalCartPromise = apiClient<CartPayload>(`/cart?${query.toString()}`, {
       headers: {
         'X-Guest-Session-ID': guestId,
       },
+    }).then((res) => {
+      if (res.success && res.data) {
+        globalCartCache = res.data;
+      }
+      globalCartPromise = null;
+      return res;
+    }).catch((err) => {
+      globalCartPromise = null;
+      throw err;
     });
+
+    return globalCartPromise;
   },
 
   async addItem(variantId: number, quantity = 1): Promise<ApiResponse<CartPayload>> {
     const guestId = getGuestSessionId();
-    return apiClient<CartPayload>('/cart/items', {
+    const res = await apiClient<CartPayload>('/cart/items', {
       method: 'POST',
       headers: {
         'X-Guest-Session-ID': guestId,
@@ -100,11 +157,15 @@ export const cartService = {
         quantity,
       }),
     });
+    if (res.success && res.data) {
+      globalCartCache = res.data;
+    }
+    return res;
   },
 
   async updateQuantity(cartItemId: number, quantity: number): Promise<ApiResponse<CartPayload>> {
     const guestId = getGuestSessionId();
-    return apiClient<CartPayload>(`/cart/items/${cartItemId}`, {
+    const res = await apiClient<CartPayload>(`/cart/items/${cartItemId}`, {
       method: 'PATCH',
       headers: {
         'X-Guest-Session-ID': guestId,
@@ -113,27 +174,39 @@ export const cartService = {
         quantity,
       }),
     });
+    if (res.success && res.data) {
+      globalCartCache = res.data;
+    }
+    return res;
   },
 
   async removeItem(cartItemId: number): Promise<ApiResponse<CartPayload>> {
     const guestId = getGuestSessionId();
-    return apiClient<CartPayload>(`/cart/items/${cartItemId}`, {
+    const res = await apiClient<CartPayload>(`/cart/items/${cartItemId}`, {
       method: 'DELETE',
       headers: {
         'X-Guest-Session-ID': guestId,
       },
     });
+    if (res.success && res.data) {
+      globalCartCache = res.data;
+    }
+    return res;
   },
 
   async mergeCart(): Promise<ApiResponse<CartPayload>> {
     const guestId = getGuestSessionId();
     if (!guestId) return { success: false, message: 'No guest session' };
 
-    return apiClient<CartPayload>('/cart/merge', {
+    const res = await apiClient<CartPayload>('/cart/merge', {
       method: 'POST',
       body: JSON.stringify({
         guest_session_id: guestId,
       }),
     });
+    if (res.success && res.data) {
+      globalCartCache = res.data;
+    }
+    return res;
   }
 };

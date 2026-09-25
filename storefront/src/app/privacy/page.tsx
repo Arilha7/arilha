@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ChevronLeft, ShieldCheck, Lock, FileText, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ShieldCheck, Lock, FileText } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Femmeera',
-  description: "Read Femmeera's privacy policy regarding how we collect, use, protect and handle customer personal data and order details.",
+  title: 'Privacy Policy | ARILHA',
+  description: "Read ARILHA by Irsa Khan's privacy policy regarding how we collect, use, protect and handle customer personal data and order details.",
+  alternates: {
+    canonical: 'https://arilha.com/privacy',
+  },
 };
 
 export default function PrivacyPolicyPage() {
@@ -27,7 +30,7 @@ export default function PrivacyPolicyPage() {
             Privacy Policy
           </h1>
           <p className="text-xs text-neutral-500 mt-2">
-            Last Updated: August 2026 • Effective Date: January 1, 2026
+            Last Updated: September 2026 • Effective Date: January 1, 2026
           </p>
         </div>
 
@@ -60,7 +63,7 @@ export default function PrivacyPolicyPage() {
               1. Information We Collect
             </h2>
             <p>
-              When you browse our online store, register an account, or make a purchase, Femmeera collects necessary information to complete your order:
+              When you browse our online store, register an account, or make a purchase, ARILHA collects necessary information to complete your order:
             </p>
             <ul className="list-disc list-inside space-y-1 text-neutral-600 pl-2">
               <li>Full Name, Email Address, and Contact Mobile Number</li>
@@ -78,7 +81,7 @@ export default function PrivacyPolicyPage() {
               Your personal information is strictly used for legitimate e-commerce operations:
             </p>
             <ul className="list-disc list-inside space-y-1 text-neutral-600 pl-2">
-              <li>Processing, fulfilling, and delivering your online fashion orders</li>
+              <li>Processing, fulfilling, and delivering your online jewellery orders</li>
               <li>Sending order confirmation emails, shipment dispatch alerts, and invoice updates</li>
               <li>Providing customer support regarding returns, refunds, or product queries</li>
               <li>Improving our website performance, user experience, and catalog recommendations</li>
@@ -90,7 +93,7 @@ export default function PrivacyPolicyPage() {
               3. Data Protection & Security
             </h2>
             <p>
-              Femmeera implements industry-standard technical and organizational security measures to protect your data against unauthorized access, alteration, disclosure, or destruction.
+              ARILHA implements industry-standard technical and organizational security measures to protect your data against unauthorized access, alteration, disclosure, or destruction.
             </p>
           </div>
 
@@ -111,7 +114,7 @@ export default function PrivacyPolicyPage() {
               If you have any questions, concerns, or requests regarding this Privacy Policy or your personal data rights, please contact us at:
             </p>
             <div className="p-4 bg-[#FAF6F0] rounded-2xl border border-[#EFE6D8] font-mono text-xs text-neutral-900">
-              Email: myfemmeera@gmail.com
+              Email: support@arilha.com
             </div>
           </div>
 

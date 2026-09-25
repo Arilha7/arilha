@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $subject ?? 'Femmeera Store' }}</title>
+    <title>{{ $subject ?? 'ARILHA' }}</title>
     <style>
         body {
             margin: 0;
@@ -68,7 +68,7 @@
         }
         .btn {
             display: inline-block;
-            background-color: #B38548;
+            background-color: #FF6600;
             color: #FFFFFF !important;
             font-size: 13px;
             font-weight: 700;
@@ -132,7 +132,7 @@
             line-height: 1.5;
         }
         .footer a {
-            color: #B38548;
+            color: #FF6600;
             text-decoration: none;
         }
     </style>
@@ -141,8 +141,8 @@
     <div class="wrapper">
         <div class="container">
             <div class="header">
-                <h1>FEMMEERA</h1>
-                <p>LUXURY ETHNIC & CONTEMPORARY COUTURE</p>
+                <h1>ARILHA</h1>
+                <p>MODERN INDIAN JEWELLERY BY IRSA KHAN</p>
             </div>
 
             <div class="content">
@@ -150,9 +150,9 @@
             </div>
 
             <div class="footer">
-                <p style="margin-top: 0;">Need help with your order? Contact our Concierge Support.</p>
-                <p>Email: <a href="mailto:support@femmeera.com">support@femmeera.com</a> | Phone: +91 98765 43210</p>
-                <p style="font-size: 11px; color: #999999; margin-bottom: 0;">&copy; {{ date('Y') }} Femmeera Store. All rights reserved.</p>
+                <p style="margin-top: 0;">Need help with your order? Contact ARILHA Support.</p>
+                <p>Email: <a href="mailto:support@arilha.com">support@arilha.com</a></p>
+                <p style="font-size: 11px; color: #999999; margin-bottom: 0;">&copy; {{ date('Y') }} ARILHA by Irsa Khan. All rights reserved.</p>
             </div>
         </div>
     </div>

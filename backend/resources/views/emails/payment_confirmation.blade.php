@@ -22,7 +22,7 @@
         </tr>
         <tr>
             <td><strong>Amount Paid:</strong></td>
-            <td style="text-align: right; font-weight: bold; color: #B38548;">₹{{ number_format($order['total'], 2) }}</td>
+            <td style="text-align: right; font-weight: bold; color: #FF6600;">₹{{ number_format($order['total'], 2) }}</td>
         </tr>
         <tr>
             <td><strong>Payment Gateway:</strong></td>
@@ -32,6 +32,6 @@
 </div>
 
 <p class="paragraph">
-    Your order is now confirmed and moves to fulfillment. You can track your shipment status from your Femmeera customer account dashboard.
+    Your order is now confirmed and moves to fulfillment. You can track your shipment status from your ARILHA customer account dashboard.
 </p>
 @endsection

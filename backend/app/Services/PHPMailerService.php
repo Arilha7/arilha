@@ -21,8 +21,8 @@ class PHPMailerService
         $username = env('MAIL_USERNAME', config('mail.mailers.smtp.username', ''));
         $password = env('MAIL_PASSWORD', config('mail.mailers.smtp.password', ''));
         $encryption = env('MAIL_ENCRYPTION', config('mail.mailers.smtp.encryption', 'tls'));
-        $fromAddress = env('MAIL_FROM_ADDRESS', config('mail.from.address', 'no-reply@femmeera.com'));
-        $fromName = env('MAIL_FROM_NAME', config('mail.from.name', 'Femmeera Store'));
+        $fromAddress = env('MAIL_FROM_ADDRESS', config('mail.from.address', 'no-reply@arilha.com'));
+        $fromName = env('MAIL_FROM_NAME', config('mail.from.name', 'ARILHA'));
 
         // Server Settings
         $mail->isSMTP();
@@ -109,7 +109,7 @@ class PHPMailerService
         $host = env('MAIL_HOST', config('mail.mailers.smtp.host', '127.0.0.1'));
         $port = (int) env('MAIL_PORT', config('mail.mailers.smtp.port', 587));
         $username = env('MAIL_USERNAME', config('mail.mailers.smtp.username', ''));
-        $fromAddress = env('MAIL_FROM_ADDRESS', config('mail.from.address', 'no-reply@femmeera.com'));
+        $fromAddress = env('MAIL_FROM_ADDRESS', config('mail.from.address', 'no-reply@arilha.com'));
 
         try {
             $mail = $this->createMailer();
@@ -117,8 +117,8 @@ class PHPMailerService
             if (!empty($testRecipientEmail)) {
                 $mail->addAddress($testRecipientEmail, 'Test Recipient');
                 $mail->isHTML(true);
-                $mail->Subject = 'Femmeera SMTP Diagnostic Test Email';
-                $mail->Body = '<h1>Femmeera SMTP Connection Test</h1><p>This is a test email sent from Femmeera Store PHPMailer Service.</p>';
+                $mail->Subject = 'ARILHA SMTP Diagnostic Test Email';
+                $mail->Body = '<h1>ARILHA SMTP Connection Test</h1><p>This is a test email sent from ARILHA PHPMailer Service.</p>';
                 $mail->send();
                 return [
                     'success' => true,

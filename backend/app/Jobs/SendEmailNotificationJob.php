@@ -101,6 +101,7 @@ class SendEmailNotificationJob implements ShouldQueue
     {
         $map = [
             'welcome_email' => 'Welcome to Femmeera - Exclusive Luxury Fashion',
+            'login_otp' => 'Arilha Login OTP',
             'order_confirmation' => 'Order Confirmation - Femmeera #{order_number}',
             'payment_confirmation' => 'Payment Received for Order #{order_number}',
             'order_processing' => 'Your Order #{order_number} is being Processed',

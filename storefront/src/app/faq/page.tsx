@@ -1,24 +1,47 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ChevronLeft, HelpCircle, ShoppingBag, CreditCard, Truck, RotateCcw, Mail, Search } from 'lucide-react';
+import { ChevronLeft, HelpCircle, CreditCard, Truck, RotateCcw, Mail, Sparkles } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: "Frequently Asked Questions | Femmeera",
-  description: "Find answers to common questions about Femmeera women's traditional and western clothing, orders, payments, shipping, returns, refunds and more.",
+  title: "FAQ | ARILHA",
+  description: "Find answers to common questions about ARILHA jewellery, orders, payments, shipping, care, and returns.",
+  alternates: {
+    canonical: 'https://arilha.com/faq',
+  },
 };
 
 const faqs = [
   {
-    category: "General",
-    icon: HelpCircle,
+    category: "About ARILHA & Products",
+    icon: Sparkles,
     items: [
       {
-        q: "What is Femmeera?",
-        a: "Femmeera is an online fashion store offering a curated collection of women's clothing, including traditional Indian wear and modern western wear. We aim to make stylish and quality fashion accessible through a convenient online shopping experience.",
+        q: "What is ARILHA?",
+        a: "ARILHA is a modern Indian jewellery brand created with the belief that jewellery should not be saved only for special occasions — it should be part of your everyday moments.",
       },
       {
-        q: "What types of clothing does Femmeera offer?",
-        a: "Femmeera currently offers two main categories:\n• Traditional Wear for Women (Sarees, Lehengas, Suits, Kurtis)\n• Western Wear for Women (Dresses, Co-ord Sets, Tops, Partywear)\n\nOur collections include different styles, designs and outfits suitable for everyday wear, celebrations, festivals, parties and special occasions.",
+        q: "Who created ARILHA?",
+        a: "Irsa Khan is the creator and face behind ARILHA. With her experience as a creator and influencer, Irsa brings her personal sense of fashion, styling, and self-expression into every collection.",
+      },
+      {
+        q: "What type of jewellery does ARILHA sell?",
+        a: "ARILHA offers a curated range of modern Indian and everyday jewellery including:\n• Gold-plated jewellery & Anti-tarnish pieces\n• Kundan & Bridal jewellery sets\n• Jhumkas, Hoop & Drop Earrings\n• Necklaces, Chokers & Layered Chains\n• Bracelets, Bangles & Stacking Rings",
+      },
+      {
+        q: "Is ARILHA jewellery anti-tarnish?",
+        a: "Selected pieces in our everyday collections are specifically documented and treated with high-grade anti-tarnish coatings to ensure long-lasting shine for daily wear. Please refer to individual product detail pages for specific anti-tarnish specifications.",
+      },
+      {
+        q: "Is ARILHA jewellery water-resistant?",
+        a: "Certain stainless-steel and anti-tarnish items offer water resistance for everyday splash contact. However, to preserve the luster of gold-plating and gemstones, we recommend avoiding prolonged immersion in water.",
+      },
+      {
+        q: "What is gold-plated jewellery?",
+        a: "Gold-plated jewellery features a base metal (such as brass or sterling silver) finished with a fine layer of gold plating for a rich, luxurious look at an accessible price point.",
+      },
+      {
+        q: "How should I care for my jewellery?",
+        a: "JEWELLERY CARE TIPS:\n• Store pieces in a dry place.\n• Avoid direct contact with perfumes, lotions, and harsh chemicals.\n• Keep jewellery away from chlorine and cleaning products.\n• Wipe gently with a soft, dry cloth after use.\n• Store pieces separately in individual pouches to reduce scratches and tangling.",
       },
     ],
   },
@@ -28,61 +51,29 @@ const faqs = [
     items: [
       {
         q: "How can I place an order?",
-        a: "Browse our products, select your preferred item and size, add it to your cart, and proceed to checkout. Enter your delivery information and complete the payment using one of the available payment methods.",
+        a: "Browse our jewellery catalog, select your preferred items, add them to your cart, and proceed to checkout. Enter your delivery information and complete the payment using one of our secure payment options.",
       },
       {
         q: "What payment methods are available?",
-        a: "Depending on availability, Femmeera supports:\n• UPI & Instant Wallet Transfer (Google Pay, PhonePe, Paytm)\n• Credit Cards & Debit Cards (Visa, Mastercard, RuPay)\n• Cash on Delivery (COD)\n\nAll online payments are processed through secure payment infrastructure.",
+        a: "ARILHA supports multiple secure payment methods:\n• UPI & Wallets (Google Pay, PhonePe, Paytm)\n• Debit & Credit Cards (Visa, Mastercard, RuPay)\n• Cash on Delivery (COD) for eligible pincodes across India.",
       },
       {
-        q: "Is Cash on Delivery available?",
-        a: "Cash on Delivery (COD) is available for selected products and delivery locations across India. Availability will be automatically displayed during checkout.",
-      },
-      {
-        q: "How can I check my order status?",
-        a: "After placing an order, you can log in to your Femmeera account and visit 'My Orders' to view real-time order status and live courier tracking information.",
-      },
-      {
-        q: "Can I cancel my order?",
-        a: "Order cancellation depends on the current status of the order. Orders that have already been processed or dispatched may not be eligible for cancellation. Please refer to our Return Policy for complete details.",
+        q: "How can I track my order?",
+        a: "After placing an order, log in to your ARILHA account and visit 'My Orders' to view real-time dispatch updates and live courier tracking information.",
       },
     ],
   },
   {
-    category: "Shipping & Delivery",
-    icon: Truck,
-    items: [
-      {
-        q: "How long does delivery take?",
-        a: "Delivery time depends on the product, delivery location, availability and shipping method. Standard dispatch takes 1-2 business days, and estimated delivery periods (3-7 days) are displayed during checkout.",
-      },
-    ],
-  },
-  {
-    category: "Returns & Refunds",
+    category: "Shipping & Returns",
     icon: RotateCcw,
     items: [
       {
-        q: "Can I return a product?",
-        a: "Return eligibility depends on the product and the applicable return policy. Products must generally meet required return conditions (unused, unwashed, original tags intact). Please review our Return Policy before requesting a return.",
+        q: "How long does delivery take?",
+        a: "Orders are dispatched within 24–48 hours. Standard delivery across India takes 3–5 business days, while express shipping options deliver in 1–2 business days.",
       },
       {
-        q: "How do I request a return?",
-        a: "Log in to your Femmeera account, open 'My Orders', select the relevant order and click 'Request Return' to follow the quick return process.",
-      },
-      {
-        q: "When will I receive my refund?",
-        a: "Once an eligible return has been received and inspected at our warehouse, the refund will be processed to your original payment method or bank account within 5-7 business days.",
-      },
-    ],
-  },
-  {
-    category: "Customer Support",
-    icon: Mail,
-    items: [
-      {
-        q: "How can I contact Femmeera?",
-        a: "For questions regarding orders, products, shipping or returns, visit our Contact Us page or email us directly at myfemmeera@gmail.com.",
+        q: "What is the return policy?",
+        a: "We accept returns on eligible items within 7 days of delivery. Items must be unused, undamaged, and in their original ARILHA packaging. Please refer to our Return Policy page for step-by-step instructions.",
       },
     ],
   },
@@ -108,7 +99,7 @@ export default function FAQPage() {
             Frequently Asked Questions
           </h1>
           <p className="text-xs sm:text-sm text-neutral-600 max-w-lg mx-auto leading-relaxed">
-            Find quick answers to common questions about Femmeera orders, shipping, payments, returns, and products.
+            Find answers to common questions about ARILHA jewellery, care instructions, shipping, payments, and returns.
           </p>
         </div>
 

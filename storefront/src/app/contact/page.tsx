@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ChevronLeft, Mail, Globe, HeadphoneOff, MessageSquare, Package, Truck, RotateCcw } from 'lucide-react';
+import { ChevronLeft, Mail, Globe, MessageSquare, Package } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Contact Femmeera | Customer Support',
-  description: "Contact Femmeera for help with orders, products, shipping, returns, payments and other customer enquiries.",
+  title: 'Contact ARILHA | ARILHA',
+  description: "Contact ARILHA by Irsa Khan for help with jewellery orders, products, care instructions, shipping, returns, and customer enquiries.",
+  alternates: {
+    canonical: 'https://arilha.com/contact',
+  },
 };
 
 export default function ContactPage() {
@@ -24,10 +27,10 @@ export default function ContactPage() {
             GET IN TOUCH
           </span>
           <h1 className="font-serif text-3xl sm:text-4xl font-medium text-neutral-900">
-            Contact Femmeera
+            Contact ARILHA
           </h1>
           <p className="text-xs sm:text-sm text-neutral-600 max-w-md mx-auto leading-relaxed">
-            We're here to help. Whether you have a question about a product, need assistance with an order, or want to know more about shipping and returns, our team is happy to assist you.
+            We're here to help. Whether you have a question about a piece of jewellery, need assistance with an order, or want to know more about shipping and returns, our team is happy to assist you.
           </p>
         </div>
 
@@ -45,10 +48,10 @@ export default function ContactPage() {
             </div>
             <div className="pt-2">
               <a
-                href="mailto:myfemmeera@gmail.com"
+                href="mailto:support@arilha.com"
                 className="inline-flex items-center text-sm font-bold text-[#B38548] hover:underline"
               >
-                myfemmeera@gmail.com
+                support@arilha.com
               </a>
             </div>
           </div>
@@ -60,11 +63,11 @@ export default function ContactPage() {
               </div>
               <h3 className="font-serif text-xl font-medium text-neutral-900">Official Store</h3>
               <p className="text-xs text-neutral-600 leading-relaxed">
-                Visit our official online store to browse collections, track orders, or manage your account profile.
+                Visit our official online store to browse jewellery collections, track orders, or manage your profile.
               </p>
             </div>
             <div className="pt-2">
-              <span className="text-sm font-bold text-neutral-900">Femmeera.com</span>
+              <span className="text-sm font-bold text-neutral-900">arilha.com</span>
             </div>
           </div>
         </div>
@@ -92,38 +95,10 @@ export default function ContactPage() {
                 <span>Product Enquiries</span>
               </div>
               <p className="text-neutral-600 leading-relaxed">
-                Have questions about product availability, sizes, colours or other details? Send us your enquiry.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#FAF6F0] space-y-2 border border-[#EFE6D8]">
-              <div className="flex items-center space-x-2 font-bold text-neutral-900 text-sm">
-                <Truck className="w-4 h-4 text-[#B38548]" />
-                <span>Shipping & Delivery</span>
-              </div>
-              <p className="text-neutral-600 leading-relaxed">
-                Need help tracking your order or understanding delivery timelines? We're here to help.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#FAF6F0] space-y-2 border border-[#EFE6D8]">
-              <div className="flex items-center space-x-2 font-bold text-neutral-900 text-sm">
-                <RotateCcw className="w-4 h-4 text-[#B38548]" />
-                <span>Returns & Refunds</span>
-              </div>
-              <p className="text-neutral-600 leading-relaxed">
-                For questions regarding returns, exchanges or refunds, please reach out to our support team.
+                Have questions about jewellery materials, anti-tarnish care, finishes or availability? Send us your enquiry.
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Customer Commitment Notice */}
-        <div className="bg-[#FAF4EB] p-6 rounded-3xl border border-[#EFE6D8] text-center space-y-2">
-          <h4 className="font-serif text-lg font-bold text-neutral-900">Customer Support Commitment</h4>
-          <p className="text-xs text-neutral-600 leading-relaxed max-w-xl mx-auto">
-            For faster assistance, please include your order number when contacting us about an existing order. We're committed to providing a smooth and reliable shopping experience at Femmeera.
-          </p>
         </div>
 
       </div>

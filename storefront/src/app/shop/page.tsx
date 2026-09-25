@@ -13,8 +13,14 @@ function ShopPageContent() {
   const router = useRouter();
 
   const searchParam = searchParams.get('search') || '';
-  const categoryParam = searchParams.get('category_slug') || '';
+  const categoryParam = searchParams.get('category') || searchParams.get('category_slug') || '';
   const sortParam = searchParams.get('sort') || 'newest';
+
+  useEffect(() => {
+    if (categoryParam) {
+      router.replace(`/collections/${categoryParam}`);
+    }
+  }, [categoryParam, router]);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -27,6 +33,7 @@ function ShopPageContent() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    document.title = 'Shop Jewellery | ARILHA';
     categoryService.getCategories().then((res) => {
       if (res.success && res.data) {
         setCategories(res.data);
@@ -100,6 +107,14 @@ function ShopPageContent() {
     router.push(`/shop?${q.toString()}`);
   };
 
+  if (categoryParam) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-16 text-center text-xs font-bold text-neutral-400">
+        Redirecting to collection...
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8 min-h-[80vh]">
       {/* Header Banner */}
@@ -107,7 +122,7 @@ function ShopPageContent() {
         <div>
           <span className="text-[10px] font-black uppercase tracking-widest text-[#B38548] flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-[#B38548]" />
-            FEMMEERA COLLECTION 2026
+            ARILHA COLLECTION 2026
           </span>
           <h1 className="text-2xl sm:text-4xl font-black uppercase tracking-tight text-neutral-900 mt-1">
             {search ? `Search Results for "${search}"` : categorySlug ? `Category: ${categorySlug.replace('-', ' ')}` : 'Complete Catalog'}

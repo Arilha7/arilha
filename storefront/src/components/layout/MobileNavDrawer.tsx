@@ -19,14 +19,14 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
   onClose,
   categories,
 }) => {
-  const [logoUrl, setLogoUrl] = useState('/logo.png');
+  const [logoUrl, setLogoUrl] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     setIsLoggedIn(!!authService.getStoredToken());
     settingService.getSettings().then((res) => {
-      if (res.success && res.data?.store_logo) {
-        setLogoUrl(res.data.store_logo);
+      if (res.success) {
+        setLogoUrl(res.data?.store_logo || '');
       }
     });
   }, [isOpen]);
@@ -40,15 +40,28 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
         <div className="w-screen max-w-xs bg-white shadow-2xl flex flex-col">
           {/* Top Drawer Header */}
           <div className="p-4 border-b border-neutral-100 flex items-center justify-between">
-            <Link href="/" onClick={onClose}>
-              <Image
-                src={logoUrl}
-                alt="Femmeera"
-                width={150}
-                height={50}
-                className="h-10 w-auto object-contain"
-              />
-            </Link>
+            {logoUrl ? (
+              <Link href="/" onClick={onClose}>
+                <img
+                  src={logoUrl}
+                  alt="ARILHA"
+                  className="h-9 w-auto object-contain"
+                />
+              </Link>
+            ) : (
+              <Link href="/" onClick={onClose} className="flex items-center shrink-0 py-1">
+                <div className="flex flex-col items-start justify-center group">
+                  <div className="flex items-center space-x-1">
+                    <span className="font-serif text-xl font-bold tracking-[0.18em] text-neutral-900 relative">
+                      AR<span className="relative">I<span className="absolute -top-1.5 left-1/2 -translate-x-1/2 text-[9px] text-[#C59B58]">✦</span></span>LHA
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-serif italic text-neutral-500 tracking-wider -mt-1 pl-0.5">
+                    by Irsa Khan
+                  </span>
+                </div>
+              </Link>
+            )}
             <button onClick={onClose} className="p-1 text-neutral-400 hover:text-black">
               <X className="w-6 h-6" />
             </button>
@@ -60,18 +73,24 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
               Home
             </Link>
 
-            <Link href="/women" onClick={onClose} className="block py-2.5 border-b border-neutral-100">
-              All Women's Collection
+            <Link href="/collections" onClick={onClose} className="flex items-center justify-between py-2.5 border-b border-neutral-100 text-[#B38548]">
+              <span>Explore All Collections</span>
+              <ChevronRight className="w-4 h-4 text-[#B38548]" />
             </Link>
 
-            <Link href="/women/traditional-wear" onClick={onClose} className="flex items-center justify-between py-2.5 border-b border-neutral-100">
-              <span>Traditional Wear</span>
+            <Link href="/collections/diwali" onClick={onClose} className="flex items-center justify-between py-2.5 border-b border-neutral-100">
+              <span>Diwali Festive Edit</span>
               <ChevronRight className="w-4 h-4 text-neutral-400" />
             </Link>
 
-            <Link href="/women/western-wear" onClick={onClose} className="flex items-center justify-between py-2.5 border-b border-neutral-100">
-              <span>Western Wear</span>
+            <Link href="/collections/earrings" onClick={onClose} className="flex items-center justify-between py-2.5 border-b border-neutral-100">
+              <span>Everyday &amp; Anti-Tarnish Jewellery</span>
               <ChevronRight className="w-4 h-4 text-neutral-400" />
+            </Link>
+
+            <Link href="/collections/watches" onClick={onClose} className="flex items-center justify-between py-2.5 border-b border-neutral-100 text-[#B38548]">
+              <span>Watches Collection</span>
+              <ChevronRight className="w-4 h-4 text-[#B38548]" />
             </Link>
 
             <Link href="/shop" onClick={onClose} className="block py-2.5 border-b border-neutral-100">

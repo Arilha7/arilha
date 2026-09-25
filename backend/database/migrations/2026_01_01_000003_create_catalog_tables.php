@@ -74,7 +74,7 @@ return new class extends Migration
             $table->string('sku', 100)->unique();
             $table->text('description')->nullable();
             $table->text('short_description')->nullable();
-            $table->string('brand', 100)->default('Femmeera');
+            $table->string('brand', 100)->default('ARILHA');
             $table->enum('gender', ['WOMEN', 'MEN', 'UNISEX'])->default('WOMEN');
             $table->enum('status', ['ACTIVE', 'INACTIVE', 'ARCHIVED'])->default('ACTIVE');
             $table->boolean('is_featured')->default(false);

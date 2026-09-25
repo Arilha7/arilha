@@ -26,7 +26,8 @@ export default function ShippingPolicyPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/v1/shipping-policy')
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+    fetch(`${apiBaseUrl}/shipping-policy`)
       .then((res) => res.json())
       .then((json) => {
         if (json.success) {

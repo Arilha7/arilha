@@ -11,9 +11,37 @@ export interface SearchSuggestion {
   image_url?: string | null;
 }
 
-export interface ProductsResponsePayload {
-  data?: Product[];
-  related_products?: Product[];
+export interface ProductReviewItem {
+  id: number;
+  product_id: number;
+  reviewer_name: string;
+  rating: number;
+  title?: string;
+  comment: string;
+  is_verified_purchase: boolean;
+  created_at: string;
+  images?: string[];
+}
+
+export interface ProductReviewsData {
+  average_rating: number;
+  total_reviews: number;
+  rating_breakdown: {
+    '5': number;
+    '4': number;
+    '3': number;
+    '2': number;
+    '1': number;
+  };
+  reviews: ProductReviewItem[];
+}
+
+export interface ReviewEligibilityData {
+  can_review: boolean;
+  reason?: string;
+  message?: string;
+  order_id?: number;
+  already_reviewed?: boolean;
 }
 
 export const productService = {
@@ -52,5 +80,30 @@ export const productService = {
         data: undefined as any,
       };
     }
-  }
+  },
+
+  async getProductReviews(productId: number, page = 1): Promise<ApiResponse<ProductReviewsData>> {
+    return apiClient<ProductReviewsData>(`/products/${productId}/reviews?page=${page}`);
+  },
+
+  async checkReviewEligibility(productId: number): Promise<ApiResponse<ReviewEligibilityData>> {
+    return apiClient<ReviewEligibilityData>(`/products/${productId}/review-eligibility`);
+  },
+
+  async submitProductReview(formData: FormData): Promise<ApiResponse<any>> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('femmeera_customer_token') : null;
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+
+    const res = await fetch(`${API_BASE_URL}/customer/reviews`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+
+    const data = await res.json();
+    return data;
+  },
 };

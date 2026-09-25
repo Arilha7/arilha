@@ -35,6 +35,25 @@ export interface PublicReel {
   sort_order: number;
 }
 
+export interface PublicLifestyleSlide {
+  id: number;
+  title: string;
+  subtitle?: string | null;
+  image_url: string;
+  link_url?: string | null;
+  sort_order: number;
+  is_active: boolean | number;
+}
+
+export interface PublicTestimonial {
+  id?: number;
+  name: string;
+  quote: string;
+  verified?: string;
+  rating?: number;
+  sort_order?: number;
+}
+
 export const cmsService = {
   async getHeroBanners(): Promise<ApiResponse<PublicHeroBanner[]>> {
     return apiClient.get<PublicHeroBanner[]>('/cms/hero-banners');
@@ -54,6 +73,14 @@ export const cmsService = {
 
   async getWatchAndShopReels(): Promise<ApiResponse<PublicReel[]>> {
     return apiClient.get<PublicReel[]>('/cms/watch-and-shop');
+  },
+
+  async getLifestyleSlides(): Promise<ApiResponse<PublicLifestyleSlide[]>> {
+    return apiClient.get<PublicLifestyleSlide[]>('/cms/lifestyle-slides');
+  },
+
+  async getTestimonials(): Promise<ApiResponse<PublicTestimonial[]>> {
+    return apiClient.get<PublicTestimonial[]>('/cms/testimonials');
   },
 
   async getSettings(): Promise<ApiResponse<Record<string, any>>> {

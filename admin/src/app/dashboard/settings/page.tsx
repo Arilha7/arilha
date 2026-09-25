@@ -6,22 +6,22 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { settingService, SystemSettings } from '@/services/settingService';
 import { mediaService } from '@/services/mediaService';
-import { Settings, Upload, Image as ImageIcon, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Settings, Upload, Image as ImageIcon, CheckCircle, AlertCircle, RefreshCw, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<SystemSettings>({
-    store_name: 'Femmeera',
+    store_name: 'ARILHA',
     store_logo: '',
-    store_email: 'hello@femmeera.com',
+    store_email: 'support@arilha.com',
     store_phone: '+91 98765 43210',
-    store_address: 'Bangalore, India',
+    store_address: 'India',
     store_currency: 'INR',
     currency_symbol: '₹',
     free_shipping_threshold: '1499',
     announcement_bar: 'Free Shipping on Orders above ₹1499 | COD Available',
-    default_meta_title: "Femmeera | Premium Women's Traditional & Western Wear",
-    default_meta_description: 'Discover handcrafted traditional sarees & chic western trends.',
+    default_meta_title: "ARILHA — Modern Indian Jewellery | Anti-Tarnish & Everyday Jewellery",
+    default_meta_description: 'Discover ARILHA by Irsa Khan — modern Indian jewellery designed for everyday wear, celebrations and every version of you.',
     social_instagram: 'https://instagram.com',
     social_facebook: 'https://facebook.com',
     social_whatsapp: 'https://wa.me/919876543210',
@@ -78,6 +78,14 @@ export default function SettingsPage() {
     }
   };
 
+  const handleRemoveLogo = () => {
+    setSettings((prev) => ({
+      ...prev,
+      store_logo: '',
+    }));
+    setMessage({ type: 'success', text: 'Switched to default typography logo. Click Save Settings to apply.' });
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -129,43 +137,76 @@ export default function SettingsPage() {
       )}
 
       {/* Brand Logo Card */}
-      <Card title="Website Logo & Branding">
+      <Card title="Website Logo & Branding (Optional)">
         <div className="space-y-4">
           <p className="text-xs text-neutral-500">
-            Upload the official store logo. The logo will automatically update across the Storefront Header, Mobile Navigation Drawer, Footer, and Admin Portal.
+            Uploading an image logo is <strong>optional</strong>. If no image logo is uploaded or if removed, the website will automatically display the styled brand typography logo across the Header, Footer, and Mobile Navigation Drawer.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-neutral-50 border border-neutral-200 rounded-xl">
-            <div className="w-48 h-20 bg-white border border-neutral-200 rounded-lg flex items-center justify-center p-2 relative overflow-hidden shrink-0">
+            {/* Logo Preview Container */}
+            <div className="w-56 h-24 bg-white border border-neutral-200 rounded-xl flex flex-col items-center justify-center p-3 relative overflow-hidden shrink-0 shadow-2xs">
               {settings.store_logo ? (
-                <Image
-                  src={settings.store_logo}
-                  alt="Store Logo"
-                  width={180}
-                  height={60}
-                  className="max-h-full w-auto object-contain"
-                />
+                <div className="flex flex-col items-center justify-center h-full w-full">
+                  <Image
+                    src={settings.store_logo}
+                    alt="Custom Store Logo"
+                    width={180}
+                    height={60}
+                    className="max-h-full w-auto object-contain"
+                  />
+                  <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full mt-1">
+                    Custom Image Active
+                  </span>
+                </div>
               ) : (
-                <div className="text-center text-neutral-400 text-xs flex flex-col items-center">
-                  <ImageIcon className="w-6 h-6 mb-1" />
-                  <span>No logo set</span>
+                <div className="flex flex-col items-center justify-center text-center">
+                  <div className="flex items-center space-x-1">
+                    <span className="font-serif text-lg font-bold tracking-[0.18em] text-neutral-900 relative">
+                      AR<span className="relative">I<span className="absolute -top-1.5 left-1/2 -translate-x-1/2 text-[8px] text-[#C59B58]">✦</span></span>LHA
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-serif italic text-neutral-500 tracking-wider -mt-0.5">
+                    by Irsa Khan
+                  </span>
+                  <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full mt-1.5">
+                    Default Typography Active
+                  </span>
                 </div>
               )}
             </div>
 
-            <div className="space-y-2 text-center sm:text-left">
-              <label className="cursor-pointer inline-flex items-center space-x-2 px-4 py-2.5 bg-black text-white text-xs font-bold rounded-xl hover:bg-neutral-800 transition-colors">
-                <Upload className="w-4 h-4" />
-                <span>{isUploadingLogo ? 'Uploading Logo...' : 'Upload / Replace Logo'}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  disabled={isUploadingLogo}
-                  className="hidden"
-                />
-              </label>
-              <p className="text-[11px] text-neutral-400">Supported formats: PNG, WEBP, SVG, JPG (Max 5MB)</p>
+            {/* Action Buttons */}
+            <div className="space-y-2 text-center sm:text-left flex-1">
+              <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+                <label className="cursor-pointer inline-flex items-center space-x-2 px-4 py-2.5 bg-black text-white text-xs font-bold rounded-xl hover:bg-neutral-800 transition-colors">
+                  <Upload className="w-4 h-4" />
+                  <span>{isUploadingLogo ? 'Uploading...' : 'Upload / Replace Image Logo'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    disabled={isUploadingLogo}
+                    className="hidden"
+                  />
+                </label>
+
+                {settings.store_logo && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveLogo}
+                    className="inline-flex items-center space-x-2 px-3 py-2.5 bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl hover:bg-rose-100 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Use Default Typography Logo</span>
+                  </button>
+                )}
+              </div>
+              <p className="text-[11px] text-neutral-400">
+                {settings.store_logo
+                  ? 'Custom image uploaded. Click "Use Default Typography Logo" to reset to standard AR✦LHA logo.'
+                  : 'No custom image uploaded. Website is using the standard AR✦LHA by Irsa Khan typography logo.'}
+              </p>
             </div>
           </div>
         </div>
@@ -235,13 +276,13 @@ export default function SettingsPage() {
             label="Instagram Profile URL"
             value={settings.social_instagram || ''}
             onChange={(e) => setSettings({ ...settings, social_instagram: e.target.value })}
-            placeholder="https://instagram.com/femmeera_official"
+            placeholder="https://instagram.com/arilha"
           />
           <Input
             label="Facebook Page URL"
             value={settings.social_facebook || ''}
             onChange={(e) => setSettings({ ...settings, social_facebook: e.target.value })}
-            placeholder="https://facebook.com/femmeerastore"
+            placeholder="https://facebook.com/arilha"
           />
           <Input
             label="WhatsApp Link / Business Number"
@@ -253,19 +294,19 @@ export default function SettingsPage() {
             label="YouTube Channel URL"
             value={settings.social_youtube || ''}
             onChange={(e) => setSettings({ ...settings, social_youtube: e.target.value })}
-            placeholder="https://youtube.com/@femmeera"
+            placeholder="https://youtube.com/@arilha"
           />
           <Input
             label="Pinterest Profile URL"
             value={settings.social_pinterest || ''}
             onChange={(e) => setSettings({ ...settings, social_pinterest: e.target.value })}
-            placeholder="https://pinterest.com/femmeera"
+            placeholder="https://pinterest.com/arilha"
           />
           <Input
             label="Twitter / X Profile URL"
             value={settings.social_twitter || ''}
             onChange={(e) => setSettings({ ...settings, social_twitter: e.target.value })}
-            placeholder="https://x.com/femmeera"
+            placeholder="https://x.com/arilha"
           />
         </div>
       </Card>

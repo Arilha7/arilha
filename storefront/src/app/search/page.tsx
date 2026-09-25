@@ -5,8 +5,8 @@ import { Search as SearchIcon } from 'lucide-react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Search Catalog | Femmeera',
-  description: 'Search traditional sarees, kurtis, western dresses and fashion trends at Femmeera.',
+  title: 'Search Jewellery | ARILHA',
+  description: 'Search modern Indian jewellery, anti-tarnish pieces, Kundan sets and everyday accessories at ARILHA by Irsa Khan.',
 };
 
 interface SearchPageProps {
@@ -30,7 +30,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <h1 className="text-2xl sm:text-4xl font-black uppercase tracking-tight text-neutral-900">
           {query ? `Search: "${query}"` : 'Search Catalog'}
         </h1>
-        <p className="text-xs text-neutral-500">Found {products.length} matching apparel items</p>
+        <p className="text-xs text-neutral-500">Found {products.length} matching jewellery items</p>
       </div>
 
       <ProductGrid products={products} />

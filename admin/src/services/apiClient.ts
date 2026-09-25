@@ -25,7 +25,9 @@ export async function apiClient<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('femmeera_admin_token') : null;
+  const token = typeof window !== 'undefined'
+    ? (localStorage.getItem('femmeera_admin_token') || localStorage.getItem('token') || localStorage.getItem('admin_token'))
+    : null;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -37,7 +39,14 @@ export async function apiClient<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  let cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  if (cleanEndpoint.startsWith('/api/v1/')) {
+    cleanEndpoint = cleanEndpoint.replace('/api/v1', '');
+  } else if (cleanEndpoint === '/api/v1') {
+    cleanEndpoint = '';
+  }
+
+  const url = `${API_BASE_URL}${cleanEndpoint}`;
 
   try {
     const response = await fetch(url, {
@@ -52,6 +61,9 @@ export async function apiClient<T>(
         if (typeof window !== 'undefined') {
           localStorage.removeItem('femmeera_admin_token');
           localStorage.removeItem('femmeera_admin_user');
+          if (window.location.pathname !== '/login') {
+            window.location.replace('/login');
+          }
         }
       }
 

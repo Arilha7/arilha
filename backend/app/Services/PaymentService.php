@@ -25,12 +25,14 @@ class PaymentService
     /**
      * Create a payment order for an existing unpaid customer order.
      */
-    public function createPaymentOrder(Order $order, User $customer): array
+    public function createPaymentOrder(Order $order, ?User $customer = null): array
     {
-        // 1. Verify customer ownership
-        $orderCustomerId = (int) ($order->user_id ?? $order->customer_id);
-        if ($orderCustomerId !== (int) $customer->id) {
-            throw new RuntimeException('Unauthorized: This order does not belong to your customer account.');
+        // 1. Verify customer ownership if customer specified
+        if ($customer) {
+            $orderCustomerId = (int) ($order->user_id ?? $order->customer_id);
+            if ($orderCustomerId !== (int) $customer->id) {
+                throw new RuntimeException('Unauthorized: This order does not belong to your customer account.');
+            }
         }
 
         // 2. Verify order is in payable state
@@ -103,7 +105,7 @@ class PaymentService
     /**
      * Verify payment signature and process state transition idempotently.
      */
-    public function verifyPayment(array $payload, User $customer): array
+    public function verifyPayment(array $payload, ?User $customer = null): array
     {
         $razorpayOrderId = $payload['razorpay_order_id'] ?? '';
         $razorpayPaymentId = $payload['razorpay_payment_id'] ?? '';
@@ -117,9 +119,15 @@ class PaymentService
         }
 
         $order = $payment->order;
-        $orderCustomerId = (int) ($order->user_id ?? $order->customer_id ?? 0);
-        if (!$order || $orderCustomerId !== (int) $customer->id) {
-            throw new RuntimeException('Unauthorized payment verification attempt.');
+        if (!$order) {
+            throw new RuntimeException('Payment record has no associated order.');
+        }
+
+        if ($customer) {
+            $orderCustomerId = (int) ($order->user_id ?? $order->customer_id ?? 0);
+            if ($orderCustomerId !== (int) $customer->id) {
+                throw new RuntimeException('Unauthorized payment verification attempt.');
+            }
         }
 
         // 2. IDEMPOTENCY CHECK: If already paid, return success immediately
@@ -215,7 +223,7 @@ class PaymentService
                 }
 
                 // 3. Admin Alert: New Order Placed
-                $adminEmail = env('ADMIN_NOTIFICATION_EMAIL', env('MAIL_FROM_ADDRESS', 'admin@femmeera.com'));
+                $adminEmail = env('ADMIN_NOTIFICATION_EMAIL', env('MAIL_FROM_ADDRESS', 'admin@arilha.com'));
                 \App\Jobs\SendEmailNotificationJob::dispatch(
                     'admin_new_order',
                     $adminEmail,

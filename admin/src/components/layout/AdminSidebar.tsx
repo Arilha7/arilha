@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Shirt,
   FolderTree,
+  Layers,
   Boxes,
   Warehouse,
   ShoppingBag,
@@ -21,7 +22,8 @@ import {
   Truck,
   RotateCcw,
   Mail,
-  Calculator
+  Calculator,
+  Quote
 } from 'lucide-react';
 import { User } from '@/types';
 
@@ -52,6 +54,24 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, onNavigate }) 
       icon: <LayoutDashboard className="w-4 h-4" />,
     },
     {
+      title: 'Customer Directory',
+      href: '/dashboard/customers',
+      icon: <Users className="w-4 h-4 text-indigo-600" />,
+      badge: 'Accounts',
+    },
+    {
+      title: 'Client Testimonials',
+      href: '/dashboard/customers?tab=testimonials',
+      icon: <Quote className="w-4 h-4 text-[#B38548]" />,
+      badge: 'Homepage CMS',
+    },
+    {
+      title: 'Customer Analytics',
+      href: '/dashboard/analytics',
+      icon: <BarChart3 className="w-4 h-4 text-emerald-500" />,
+      badge: 'Live',
+    },
+    {
       title: 'Products',
       href: '/dashboard/products',
       icon: <Shirt className="w-4 h-4" />,
@@ -62,6 +82,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, onNavigate }) 
       href: '/dashboard/categories',
       icon: <FolderTree className="w-4 h-4" />,
       permission: 'categories.view',
+    },
+    {
+      title: 'Collections',
+      href: '/dashboard/collections',
+      icon: <Layers className="w-4 h-4 text-[#B38548]" />,
+      badge: 'New',
     },
     {
       title: 'Inventory',
@@ -100,12 +126,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, onNavigate }) 
       permission: 'orders.view',
     },
     {
-      title: 'Customers',
-      href: '/dashboard/customers',
-      icon: <Users className="w-4 h-4" />,
-      permission: 'customers.view',
-    },
-    {
       title: 'Reviews',
       href: '/dashboard/reviews',
       icon: <MessageSquare className="w-4 h-4" />,
@@ -116,6 +136,18 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, onNavigate }) 
       href: '/dashboard/coupons',
       icon: <Ticket className="w-4 h-4 text-rose-500" />,
       permission: 'coupons.view',
+    },
+    {
+      title: 'Free Gifts Offer',
+      href: '/dashboard/offers/free-gifts',
+      icon: <Sparkles className="w-4 h-4 text-[#B38548]" />,
+      badge: 'Offer Rule',
+    },
+    {
+      title: 'Product Bundles',
+      href: '/dashboard/bundles',
+      icon: <Boxes className="w-4 h-4 text-[#B38548]" />,
+      badge: 'Bundles',
     },
     {
       title: 'Website CMS',
@@ -130,10 +162,22 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, onNavigate }) 
       badge: '100% Width',
     },
     {
+      title: 'Lifestyle Carousel',
+      href: '/dashboard/lifestyle-slides',
+      icon: <Sparkles className="w-4 h-4 text-purple-500" />,
+      badge: '3D Carousel',
+    },
+    {
       title: 'Watch & Shop Reels',
       href: '/dashboard/reels',
       icon: <Sparkles className="w-4 h-4 text-rose-500" />,
       badge: '9:16 Video',
+    },
+    {
+      title: 'Blog CMS',
+      href: '/dashboard/blog',
+      icon: <Globe className="w-4 h-4 text-emerald-600" />,
+      badge: 'SEO',
     },
     {
       title: 'Reports',
@@ -156,10 +200,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, onNavigate }) 
 
   return (
     <aside className="w-64 bg-white border-r border-neutral-200/80 flex flex-col h-full shrink-0">
-      <div className="p-4 border-b border-neutral-100 flex items-center justify-between">
-        <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">Navigation</span>
-      </div>
-
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
         {navItems.map((item) => {
           const isActive =
@@ -178,19 +218,39 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, onNavigate }) 
               key={item.href}
               href={item.href}
               onClick={onNavigate}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all min-h-[40px] ${
+              className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all min-h-[38px] ${
                 isActive
-                  ? 'bg-black text-white dark:bg-white dark:text-black shadow-xs'
-                  : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                  ? 'bg-neutral-900 text-white shadow-xs'
+                  : 'text-neutral-600 hover:bg-neutral-100/80 hover:text-neutral-900'
               }`}
             >
               <div className="flex items-center space-x-3">
-                <span className={isActive ? 'text-white dark:text-black' : 'text-neutral-400'}>{item.icon}</span>
+                <span className={isActive ? 'text-white' : 'text-neutral-400'}>{item.icon}</span>
                 <span>{item.title}</span>
               </div>
             </Link>
           );
         })}
+
+        {/* Bottom "Grow Your Store" Promo Card */}
+        <div className="pt-4 pb-2 px-1">
+          <div className="bg-gradient-to-b from-amber-500/10 via-amber-50/50 to-amber-100/40 border border-amber-200/70 p-4 rounded-2xl space-y-2">
+            <div className="flex items-center space-x-2 text-amber-900">
+              <span className="text-base">👑</span>
+              <h4 className="font-bold text-xs tracking-tight">Grow Your Store</h4>
+            </div>
+            <p className="text-[11px] text-amber-950/70 leading-relaxed">
+              Explore insights & tools to boost your sales.
+            </p>
+            <Link
+              href="/dashboard/reports"
+              className="inline-flex items-center justify-between w-full px-3 py-2 bg-neutral-900 hover:bg-black text-white text-[11px] font-bold rounded-xl shadow-xs transition-colors"
+            >
+              <span>View Insights</span>
+              <span>→</span>
+            </Link>
+          </div>
+        </div>
       </nav>
     </aside>
   );

@@ -13,15 +13,18 @@ class CartService
     protected DiscountService $discountService;
     protected ShippingService $shippingService;
     protected TaxService $taxService;
+    protected FreeGiftService $freeGiftService;
 
     public function __construct(
         DiscountService $discountService,
         ShippingService $shippingService,
-        TaxService $taxService
+        TaxService $taxService,
+        FreeGiftService $freeGiftService
     ) {
         $this->discountService = $discountService;
         $this->shippingService = $shippingService;
         $this->taxService = $taxService;
+        $this->freeGiftService = $freeGiftService;
     }
 
     /**
@@ -223,8 +226,14 @@ class CartService
     /**
      * Compute authoritative dynamic cart details (Spec Section 7 & 9).
      */
-    public function getCartPayload(Cart $cart, ?string $couponCode = null, ?int $shippingMethodId = null, ?User $user = null): array
-    {
+    public function getCartPayload(
+        Cart $cart,
+        ?string $couponCode = null,
+        ?int $shippingMethodId = null,
+        ?User $user = null,
+        string $paymentMethod = 'UPI',
+        ?int $selectedFreeGiftId = null
+    ): array {
         $rawItems = CartItem::with(['variant.product.images', 'variant.product.category'])
             ->where('cart_id', $cart->id)
             ->get();
@@ -316,14 +325,28 @@ class CartService
 
         $netSubtotal = max(0.00, $subtotal - $totalDiscount);
 
-        // Calculate shipping
-        $shippingResult = $this->shippingService->calculateShipping($shippingMethodId, $netSubtotal);
+        // Calculate shipping with selected payment method (Prepaid UPI/Card -> ₹50, COD -> ₹100)
+        $shippingResult = $this->shippingService->calculateShipping($shippingMethodId, $netSubtotal, $paymentMethod);
 
         // Calculate tax
         $taxResult = $this->taxService->calculateTax($netSubtotal);
 
         $taxAdded = !empty($taxResult['is_inclusive']) ? 0.00 : $taxResult['tax_amount'];
         $grandTotal = round($netSubtotal + $shippingResult['amount'] + $taxAdded, 2);
+
+        // Evaluate Free Gift Eligibility & Options
+        $freeGiftEval = $this->freeGiftService->evaluateEligibility($netSubtotal, $paymentMethod);
+        $freeGiftOptions = $freeGiftEval['eligible'] ? $this->freeGiftService->getEligibleGiftOptions() : [];
+
+        $selectedGiftData = null;
+        if ($selectedFreeGiftId && $freeGiftEval['eligible']) {
+            $giftValidation = $this->freeGiftService->validateSelectedGift($selectedFreeGiftId, $netSubtotal, $paymentMethod);
+            if ($giftValidation['valid']) {
+                $selectedGiftData = $giftValidation['gift'];
+            } else {
+                $validationNotices[] = $giftValidation['message'] ?? 'Selected free gift is not available for this order.';
+            }
+        }
 
         return [
             'cart_id' => $cart->id,
@@ -341,6 +364,14 @@ class CartService
             'total' => $grandTotal,
             'currency' => 'INR',
             'currency_symbol' => '₹',
+            'free_gift' => [
+                'eligible' => $freeGiftEval['eligible'],
+                'reason' => $freeGiftEval['reason'] ?? '',
+                'message' => $freeGiftEval['message'] ?? '',
+                'threshold' => $freeGiftEval['threshold'] ?? 500.00,
+                'options' => $freeGiftOptions,
+                'selected_gift' => $selectedGiftData,
+            ],
             'validation_notices' => array_values(array_unique($validationNotices)),
         ];
     }

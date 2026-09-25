@@ -26,14 +26,14 @@ class CMSPublicController extends Controller
         }
 
         // Fallbacks if not set in DB
-        $settings['store_name'] = $settings['store_name'] ?? 'Femmeera';
-        $settings['store_logo'] = $settings['store_logo'] ?? asset('logo.png');
+        $settings['store_name'] = $settings['store_name'] ?? 'ARILHA';
+        $settings['store_logo'] = $settings['store_logo'] ?? null;
         $settings['currency_symbol'] = $settings['currency_symbol'] ?? '₹';
         $settings['store_currency'] = $settings['store_currency'] ?? 'INR';
         $settings['free_shipping_threshold'] = $settings['free_shipping_threshold'] ?? '1499';
         $settings['announcement_bar'] = $settings['announcement_bar'] ?? 'Free Shipping on Orders above ₹1499 | COD Available';
         $settings['promo_banner_image'] = $settings['promo_banner_image'] ?? '/images/unlock_world_fashion_banner.jpg';
-        $settings['promo_banner_url'] = $settings['promo_banner_url'] ?? '/women/western-wear';
+        $settings['promo_banner_url'] = $settings['promo_banner_url'] ?? '/shop';
         $settings['promo_banner_status'] = $settings['promo_banner_status'] ?? 'ACTIVE';
         $settings['promo_banner_fit'] = $settings['promo_banner_fit'] ?? 'cover';
 
@@ -157,6 +157,44 @@ class CMSPublicController extends Controller
         return response()->json([
             'success' => true,
             'data' => $formatted,
+        ], 200);
+    }
+
+    /**
+     * Get active lifestyle carousel slides for homepage.
+     */
+    public function lifestyleSlides(): JsonResponse
+    {
+        $slides = DB::table('lifestyle_slides')
+            ->where('status', 'ACTIVE')
+            ->orderBy('sort_order', 'asc')
+            ->get();
+
+        $formatted = $slides->map(function ($s) {
+            $s->image_display_url = str_starts_with($s->image_url, 'http') ? $s->image_url : asset('storage/' . ltrim($s->image_url, '/'));
+            return $s;
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $formatted,
+        ], 200);
+    }
+
+    /**
+     * Get active customer testimonials for homepage.
+     */
+    public function testimonials(): JsonResponse
+    {
+        $testimonials = DB::table('testimonials')
+            ->where('status', 'ACTIVE')
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $testimonials,
         ], 200);
     }
 }

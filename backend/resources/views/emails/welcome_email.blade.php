@@ -1,16 +1,16 @@
 @extends('emails.layout')
 
 @section('content')
-<h2 class="h2-title">Welcome to Femmeera, {{ $customer_name ?? $user['name'] ?? 'Valued Customer' }}!</h2>
+<h2 class="h2-title">Welcome to ARILHA, {{ $customer_name ?? $user['name'] ?? 'Valued Customer' }}!</h2>
 <p class="paragraph">
-    Thank you for joining Femmeera. We are delighted to welcome you to our exclusive community of handcrafted ethnic and luxury fashion.
+    Thank you for joining ARILHA by Irsa Khan. We are delighted to welcome you to our community of modern Indian jewellery made for everyday wear and special moments.
 </p>
 <p class="paragraph">
-    Explore our latest collections of Banarasi silk sarees, designer Kurti sets, handcrafted co-ords, and evening couture designed for elegance and distinction.
+    Explore our curated collections of anti-tarnish everyday jewellery, Kundan & festive statement pieces, gold-plated earrings, necklaces, bangles, and rings designed for every version of you.
 </p>
 
 <div style="text-align: center; margin: 30px 0;">
-    <a href="https://femmeera.com/shop" class="btn">Explore Collections</a>
+    <a href="https://arilha.com/shop" class="btn">Explore Collections</a>
 </div>
 
 <p class="paragraph" style="font-size: 12px; color: #7A7A7A; text-align: center;">

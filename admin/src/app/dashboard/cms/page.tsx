@@ -21,7 +21,7 @@ export default function CMSPage() {
     image_url: '',
     button_text: 'CLAIM NOW',
     button_url: '/shop',
-    coupon_code: 'FEMMEERA10',
+    coupon_code: 'ARILHA10',
     status: 'ACTIVE',
   });
 
@@ -53,7 +53,7 @@ export default function CMSPage() {
     } else {
       setEditingPopup(null);
       setFormData({
-        title: 'WELCOME TO FEMMEERA',
+        title: 'WELCOME TO ARILHA',
         description: 'Get 10% OFF on your first purchase!',
         image_url: '',
         button_text: 'CLAIM 10% OFF',

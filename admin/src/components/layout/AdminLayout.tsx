@@ -55,7 +55,6 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
     const cachedUser = authService.getStoredUser();
     if (cachedUser) {
       setUser(cachedUser);
-      setIsLoading(false);
     }
 
     // Verify token with backend
@@ -68,9 +67,10 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       })
       .catch((err) => {
-        if (err?.status === 401) {
+        if (err?.status === 401 || err?.message === 'Unauthenticated.') {
+          localStorage.removeItem('femmeera_admin_token');
+          localStorage.removeItem('femmeera_admin_user');
           setUser(null);
-          setIsLoading(false);
           router.replace('/login');
         }
       })
@@ -88,7 +88,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="flex flex-col items-center space-y-3">
           <Loader2 className="w-8 h-8 text-black animate-spin" />
-          <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">Authenticating Femmeera Admin...</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">Authenticating ARILHA Admin...</p>
         </div>
       </div>
     );

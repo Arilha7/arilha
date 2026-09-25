@@ -30,7 +30,14 @@ export async function apiClient<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  let cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  if (cleanEndpoint.startsWith('/api/v1/')) {
+    cleanEndpoint = cleanEndpoint.replace('/api/v1', '');
+  } else if (cleanEndpoint === '/api/v1') {
+    cleanEndpoint = '';
+  }
+
+  const url = `${API_BASE_URL}${cleanEndpoint}`;
 
   try {
     const response = await fetch(url, {
@@ -57,7 +64,7 @@ export async function apiClient<T>(
     }
     return {
       success: false,
-      message: 'Unable to connect to Femmeera backend service.',
+      message: 'Unable to connect to ARILHA backend service.',
       data: [] as unknown as T,
     };
   }

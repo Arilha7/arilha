@@ -76,7 +76,7 @@ export const MainProductImage: React.FC<MainProductImageProps> = ({
       ) : (
         <div className="w-full h-full flex flex-col items-center justify-center font-bold text-neutral-400 text-xs space-y-2 uppercase tracking-widest bg-neutral-100">
           <span>{productName}</span>
-          <span className="text-[10px] text-neutral-300 font-mono">FEMMEERA EDIT</span>
+          <span className="text-[10px] text-neutral-300 font-mono">ARILHA EDIT</span>
         </div>
       )}
 

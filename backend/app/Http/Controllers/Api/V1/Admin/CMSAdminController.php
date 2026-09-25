@@ -305,4 +305,153 @@ class CMSAdminController extends Controller
             'message' => 'Watch & Shop reel deleted successfully.',
         ], 200);
     }
+
+    // =========================================================================
+    // 5. LIFESTYLE CAROUSEL SLIDES MANAGEMENT
+    // =========================================================================
+
+    public function indexLifestyleSlides(): JsonResponse
+    {
+        $slides = DB::table('lifestyle_slides')->orderBy('sort_order', 'asc')->get();
+
+        $formatted = $slides->map(function ($s) {
+            $s->image_display_url = str_starts_with($s->image_url, 'http') ? $s->image_url : asset('storage/' . ltrim($s->image_url, '/'));
+            return $s;
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $formatted,
+        ], 200);
+    }
+
+    public function storeLifestyleSlide(Request $request): JsonResponse
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'subtitle' => 'nullable|string|max:255',
+            'image_url' => 'required|string',
+            'link_url' => 'nullable|string|max:255',
+            'sort_order' => 'nullable|integer',
+            'status' => 'required|in:ACTIVE,DISABLED',
+        ]);
+
+        $id = DB::table('lifestyle_slides')->insertGetId([
+            'title' => $request->input('title'),
+            'subtitle' => $request->input('subtitle'),
+            'image_url' => $request->input('image_url'),
+            'link_url' => $request->input('link_url', '/shop'),
+            'sort_order' => $request->input('sort_order', 0),
+            'status' => $request->input('status', 'ACTIVE'),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lifestyle slide created successfully.',
+            'data' => DB::table('lifestyle_slides')->where('id', $id)->first(),
+        ], 201);
+    }
+
+    public function updateLifestyleSlide(Request $request, int $id): JsonResponse
+    {
+        $slide = DB::table('lifestyle_slides')->where('id', $id)->first();
+        if (!$slide) {
+            return response()->json(['success' => false, 'message' => 'Slide not found.'], 404);
+        }
+
+        $data = $request->only(['title', 'subtitle', 'image_url', 'link_url', 'sort_order', 'status']);
+        $data['updated_at'] = now();
+
+        DB::table('lifestyle_slides')->where('id', $id)->update($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lifestyle slide updated successfully.',
+            'data' => DB::table('lifestyle_slides')->where('id', $id)->first(),
+        ], 200);
+    }
+
+    public function destroyLifestyleSlide(int $id): JsonResponse
+    {
+        DB::table('lifestyle_slides')->where('id', $id)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lifestyle slide deleted successfully.',
+        ], 200);
+    }
+
+    // =========================================================================
+    // 6. CUSTOMER TESTIMONIALS MANAGEMENT
+    // =========================================================================
+
+    public function indexTestimonials(): JsonResponse
+    {
+        $testimonials = DB::table('testimonials')->orderBy('sort_order', 'asc')->orderBy('created_at', 'desc')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $testimonials,
+        ], 200);
+    }
+
+    public function storeTestimonial(Request $request): JsonResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'quote' => 'required|string',
+            'verified' => 'nullable|string|max:255',
+            'rating' => 'nullable|integer|min:1|max:5',
+            'sort_order' => 'nullable|integer',
+            'status' => 'required|in:ACTIVE,DISABLED',
+        ]);
+
+        $id = DB::table('testimonials')->insertGetId([
+            'name' => $request->input('name'),
+            'quote' => $request->input('quote'),
+            'verified' => $request->input('verified', 'Verified Buyer'),
+            'rating' => $request->input('rating', 5),
+            'sort_order' => $request->input('sort_order', 0),
+            'status' => $request->input('status', 'ACTIVE'),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Testimonial created successfully.',
+            'data' => DB::table('testimonials')->where('id', $id)->first(),
+        ], 201);
+    }
+
+    public function updateTestimonial(Request $request, int $id): JsonResponse
+    {
+        $item = DB::table('testimonials')->where('id', $id)->first();
+        if (!$item) {
+            return response()->json(['success' => false, 'message' => 'Testimonial not found.'], 404);
+        }
+
+        $data = $request->only(['name', 'quote', 'verified', 'rating', 'sort_order', 'status']);
+        $data['updated_at'] = now();
+
+        DB::table('testimonials')->where('id', $id)->update($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Testimonial updated successfully.',
+            'data' => DB::table('testimonials')->where('id', $id)->first(),
+        ], 200);
+    }
+
+    public function destroyTestimonial(int $id): JsonResponse
+    {
+        DB::table('testimonials')->where('id', $id)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Testimonial deleted successfully.',
+        ], 200);
+    }
 }

@@ -343,7 +343,7 @@ export default function CategoriesPage() {
 
           <Input
             label="URL Slug"
-            placeholder="traditional-wear"
+            placeholder="kundan-festive"
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
             required

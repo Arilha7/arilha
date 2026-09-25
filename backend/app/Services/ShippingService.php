@@ -52,13 +52,20 @@ class ShippingService
     }
 
     /**
-     * Calculate shipping cost dynamically based on DB shipping_rules and subtotal.
+     * Calculate shipping cost dynamically based on payment method:
+     * - COD (Cash on Delivery): ₹100 shipping fee
+     * - Prepaid (UPI / Card / Netbanking): ₹50 shipping fee
      */
-    public function calculateShipping(?int $methodId, float $subtotal): array
+    public function calculateShipping(?int $methodId, float $subtotal, string $paymentMethod = 'COD'): array
     {
-        $threshold = $this->getFreeShippingThreshold();
-        
-        // 1. Query active shipping rules in DB matching subtotal range
+        $payMethod = strtoupper($paymentMethod);
+        $isCOD = ($payMethod === 'COD' || $payMethod === 'CASH_ON_DELIVERY');
+
+        // Payment-method dependent shipping fees: COD ₹100, Prepaid (UPI/Card) ₹50
+        $codFee = (float) (DB::table('settings')->where('key_name', 'shipping_cod_fee')->value('value_content') ?? 100.00);
+        $prepaidFee = (float) (DB::table('settings')->where('key_name', 'shipping_prepaid_fee')->value('value_content') ?? 50.00);
+
+        // Check if explicit active shipping rule exists in DB
         $matchingRule = DB::table('shipping_rules')
             ->where('status', 'ACTIVE')
             ->where('min_order_amount', '<=', $subtotal)
@@ -75,23 +82,10 @@ class ShippingService
             $days = $matchingRule->estimated_days;
             $isFreeShipping = ($shippingPrice === 0.0);
         } else {
-            $isFreeShipping = $subtotal >= $threshold;
-            if (!$methodId) {
-                $defaultMethod = ShippingMethod::where('status', 'ACTIVE')->orderBy('price', 'asc')->first();
-                $methodId = $defaultMethod ? $defaultMethod->id : null;
-            }
-
-            $method = ShippingMethod::find($methodId);
-            if (!$method) {
-                $basePrice = 49.00;
-                $name = 'Standard Delivery';
-                $days = '3–5 working days';
-            } else {
-                $basePrice = (float) $method->price;
-                $name = $method->name;
-                $days = "{$method->estimated_min_days}–{$method->estimated_max_days} working days";
-            }
-            $shippingPrice = $isFreeShipping ? 0.00 : $basePrice;
+            $shippingPrice = $isCOD ? $codFee : $prepaidFee;
+            $name = $isCOD ? 'COD Shipping Fee' : 'Prepaid Shipping (UPI / Card)';
+            $days = '3–5 business days';
+            $isFreeShipping = ($shippingPrice === 0.0);
         }
 
         return [
@@ -100,8 +94,11 @@ class ShippingService
             'estimated_days' => $days,
             'amount' => $shippingPrice,
             'is_free_shipping' => $isFreeShipping,
-            'free_shipping_threshold' => $threshold,
-            'amount_needed_for_free_shipping' => max(0.00, $threshold - $subtotal),
+            'payment_method' => $isCOD ? 'COD' : 'PREPAID',
+            'cod_fee' => $codFee,
+            'prepaid_fee' => $prepaidFee,
+            'free_shipping_threshold' => 0,
+            'amount_needed_for_free_shipping' => 0,
         ];
     }
 }

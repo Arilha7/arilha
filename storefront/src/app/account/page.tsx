@@ -56,6 +56,7 @@ export default function AccountPage() {
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
 
   useEffect(() => {
+    document.title = 'My Account | ARILHA';
     const stored = authService.getStoredUser();
     const token = authService.getStoredToken();
 

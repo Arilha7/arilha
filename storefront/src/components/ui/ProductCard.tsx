@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Heart, Star, ShoppingBag } from 'lucide-react';
+import { Heart, Star } from 'lucide-react';
 import { Product } from '@/types';
 import { wishlistService } from '@/services/wishlistService';
-import { cartService } from '@/services/cartService';
 import { analytics } from '@/lib/analytics';
+import { AddToCartButton } from '@/components/ui/AddToCartButton';
 
 interface ProductCardProps {
   product: Product;
@@ -29,49 +29,36 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   // Find lowest price & highest mrp among variants
   const variants = product.variants || [];
+  const firstVariant = variants[0];
   const primaryPrice = product.price || (variants.length > 0 ? Math.min(...variants.map((v) => v.price)) : 1499);
   const primaryMrp = product.mrp || (variants.length > 0 ? Math.max(...variants.map((v) => v.mrp)) : 1999);
   const discountPercent = primaryMrp > primaryPrice ? Math.round(((primaryMrp - primaryPrice) / primaryMrp) * 100) : 0;
-
-  const [isAdding, setIsAdding] = useState(false);
-  const [addedSuccess, setAddedSuccess] = useState(false);
-
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const firstVariant = variants[0];
-    if (!firstVariant) return;
-
-    setIsAdding(true);
-    try {
-      const res = await cartService.addItem(firstVariant.id, 1);
-      if (res.success) {
-        setAddedSuccess(true);
-        window.dispatchEvent(new Event('femmeera-cart-updated'));
-        setTimeout(() => setAddedSuccess(false), 2000);
-      }
-    } catch (err) {
-      // Ignore
-    } finally {
-      setIsAdding(false);
-    }
-  };
 
   return (
     <div className="group relative bg-white border border-neutral-200/80 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
       {/* Product Image Box */}
       <Link href={`/product/${product.slug}`} className="block relative aspect-3/4 bg-neutral-100 overflow-hidden">
-        {/* Placeholder / Primary Image */}
-        <div className="w-full h-full flex items-center justify-center bg-neutral-100 text-neutral-400 font-bold text-xs group-hover:scale-105 transition-transform duration-500">
+        {/* Primary & Secondary Hover Image */}
+        <div className="w-full h-full flex items-center justify-center bg-neutral-100 text-neutral-400 font-bold text-xs relative overflow-hidden">
           {product.images && product.images.length > 0 ? (
-            <img
-              src={product.images[0].image_url}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
+            <>
+              <img
+                src={product.images[0].image_url}
+                alt={`${product.name} - ${product.category?.name || 'Jewellery'} by ${product.brand || 'ARILHA'}`}
+                className={`w-full h-full object-cover transition-all duration-700 ${
+                  product.images.length > 1 ? 'group-hover:opacity-0 group-hover:scale-110' : 'group-hover:scale-110'
+                }`}
+              />
+              {product.images.length > 1 && (
+                <img
+                  src={product.images[1].image_url}
+                  alt={`${product.name} - Alternate View`}
+                  className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+                />
+              )}
+            </>
           ) : (
-            <span className="uppercase tracking-widest text-[11px] text-neutral-400 font-mono">{product.brand || 'FEMMEERA'}</span>
+            <span className="uppercase tracking-widest text-[11px] text-neutral-400 font-mono">{product.brand || 'ARILHA'}</span>
           )}
         </div>
 
@@ -112,44 +99,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </Link>
         </div>
 
-        {/* Real Rating & Review Count */}
-        {product.rating !== undefined && product.rating > 0 && (
-          <div className="flex items-center space-x-1 text-xs">
-            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-            <span className="font-bold text-neutral-900">{product.rating.toFixed(1)}</span>
-            {product.review_count !== undefined && (
-              <span className="text-neutral-400 text-[11px]">({product.review_count})</span>
-            )}
-          </div>
-        )}
-
         {/* Price & Add to Cart Row */}
-        <div className="flex items-center justify-between pt-1 border-t border-neutral-100">
-          <div className="flex items-baseline space-x-1.5">
+        <div className="flex items-center justify-between pt-1 border-t border-neutral-100 gap-1">
+          <div className="flex flex-col sm:flex-row sm:items-baseline sm:space-x-1.5 leading-tight">
             <span className="text-sm sm:text-base font-black text-neutral-900">
               ₹{Number(primaryPrice || 0).toLocaleString('en-IN')}
             </span>
             {primaryMrp > primaryPrice && (
-              <span className="text-[11px] text-neutral-400 line-through">
+              <span className="text-[10px] sm:text-[11px] text-neutral-400 line-through">
                 ₹{Number(primaryMrp || 0).toLocaleString('en-IN')}
               </span>
             )}
           </div>
 
-          <button
-            onClick={handleAddToCart}
-            disabled={isAdding}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 ${
-              addedSuccess
-                ? 'bg-emerald-600 text-white'
-                : 'bg-black text-white hover:bg-neutral-800 active:scale-95'
-            }`}
-          >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            <span className="text-[11px] font-bold uppercase tracking-wider">
-              {addedSuccess ? 'Added' : isAdding ? '...' : 'Add'}
-            </span>
-          </button>
+          <AddToCartButton variantId={firstVariant?.id || product.id} compact />
         </div>
       </div>
     </div>

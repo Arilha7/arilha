@@ -43,6 +43,7 @@ export default function CartPage() {
   };
 
   useEffect(() => {
+    document.title = 'Your Cart | ARILHA';
     fetchCart();
   }, []);
 

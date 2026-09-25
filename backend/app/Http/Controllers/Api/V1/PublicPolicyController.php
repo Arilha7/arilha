@@ -22,10 +22,10 @@ class PublicPolicyController extends Controller
             'success' => true,
             'data' => [
                 'policy' => $policy ?: [
-                    'title' => 'Femmeera Shipping & Delivery Policy',
+                    'title' => 'ARILHA Shipping & Delivery Policy',
                     'dispatch_time' => '24 - 48 Hours',
-                    'free_shipping_threshold' => 2000,
-                    'content' => 'We deliver across India with reliable courier partners. Orders above ₹2,000 qualify for FREE Express Shipping.',
+                    'free_shipping_threshold' => 1499,
+                    'content' => 'We deliver across India with reliable courier partners. Orders above ₹1,499 qualify for FREE Express Shipping.',
                 ],
                 'rules' => $rules,
             ],
@@ -43,7 +43,7 @@ class PublicPolicyController extends Controller
         return response()->json([
             'success' => true,
             'data' => $policy ?: [
-                'title' => 'Femmeera Return & Refund Policy',
+                'title' => 'ARILHA Return & Refund Policy',
                 'return_window_days' => 7,
                 'allow_returns' => true,
                 'allow_exchanges' => true,

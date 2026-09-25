@@ -1,9 +1,9 @@
 @extends('emails.layout')
 
 @section('content')
-<h2 class="h2-title" style="color: #B38548;">[ADMIN ALERT] New Order Received</h2>
+<h2 class="h2-title" style="color: #FF6600;">[ADMIN ALERT] New Order Received</h2>
 <p class="paragraph">
-    A new order <strong>#{{ $order['order_number'] }}</strong> has been successfully placed on Femmeera Store.
+    A new order <strong>#{{ $order['order_number'] }}</strong> has been successfully placed on ARILHA.
 </p>
 
 <div style="background-color: #FAF4EB; border: 1px solid #E8DEC8; border-radius: 12px; padding: 16px; margin: 20px 0;">

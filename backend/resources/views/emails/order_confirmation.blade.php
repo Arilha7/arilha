@@ -55,7 +55,7 @@
         </tr>
         <tr style="border-top: 1px solid #E0D4C0;">
             <td style="padding: 10px 0 0 0; font-size: 15px; font-weight: bold; color: #1A1A1A;">Total Amount:</td>
-            <td style="padding: 10px 0 0 0; text-align: right; font-size: 16px; font-weight: bold; color: #B38548;">₹{{ number_format($order['total_amount'] ?? $order['total'] ?? 0, 2) }}</td>
+            <td style="padding: 10px 0 0 0; text-align: right; font-size: 16px; font-weight: bold; color: #FF6600;">₹{{ number_format($order['total_amount'] ?? $order['total'] ?? 0, 2) }}</td>
         </tr>
     </table>
     <p style="font-size: 10px; color: #888; margin: 6px 0 0 0; text-align: right;">(Inclusive of all taxes)</p>
@@ -70,6 +70,6 @@
 </div>
 
 <div style="text-align: center; margin-top: 25px;">
-    <a href="https://femmeera.com/account/orders" class="btn">View Order Details</a>
+    <a href="https://arilha.com/account/orders" class="btn">View Order Details</a>
 </div>
 @endsection

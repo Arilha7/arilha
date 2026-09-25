@@ -336,11 +336,25 @@ function OrderSuccessContent() {
               </div>
             </div>
 
+            {/* Passwordless Account Quick Track Banner */}
+            <div className="bg-[#FAF4EB] border border-[#E8DEC8] rounded-3xl p-5 text-center space-y-2">
+              <h4 className="font-bold text-xs uppercase tracking-wider text-[#B38548]">Want to track all your orders?</h4>
+              <p className="text-xs text-neutral-600">Sign in with your email — no password required.</p>
+              <div className="pt-1">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center space-x-1.5 px-5 py-2.5 bg-[#B38548] hover:bg-[#966C32] text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-xs transition-all"
+                >
+                  <span>Sign In with Email OTP</span>
+                </Link>
+              </div>
+            </div>
+
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-[#F5EDE0]">
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Link
                 href="/account"
-                className="flex-1 py-3.5 px-4 bg-[#B38548] hover:bg-[#966C32] text-white font-bold text-xs uppercase tracking-wider rounded-xl text-center shadow-md transition-all flex items-center justify-center space-x-1"
+                className="flex-1 py-3.5 px-4 bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl text-center shadow-md transition-all flex items-center justify-center space-x-1"
               >
                 <Package className="w-4 h-4 mr-1" />
                 <span>VIEW IN MY ORDERS</span>

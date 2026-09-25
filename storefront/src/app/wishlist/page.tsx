@@ -11,6 +11,7 @@ export default function WishlistPage() {
   const [wishlist, setWishlist] = useState<Product[]>([]);
 
   useEffect(() => {
+    document.title = 'Wishlist | ARILHA';
     setWishlist(wishlistService.getWishlist());
   }, []);
 
@@ -30,13 +31,13 @@ export default function WishlistPage() {
           <Heart className="w-12 h-12 text-neutral-300 mx-auto" />
           <h2 className="text-lg font-black uppercase text-neutral-900">Your Wishlist is Empty</h2>
           <p className="text-xs text-neutral-500 max-w-sm mx-auto">
-            Save your favorite sarees, kurtis, and western dresses here for quick access later.
+            Save your favorite jewellery pieces, jhumkas, and necklaces here for quick access later.
           </p>
           <Link
             href="/shop"
             className="inline-block px-6 py-3.5 bg-black text-white font-black text-xs uppercase tracking-wider rounded-xl hover:bg-neutral-800 transition-colors shadow-md"
           >
-            Explore Catalog
+            Explore Catalogue
           </Link>
         </div>
       ) : (

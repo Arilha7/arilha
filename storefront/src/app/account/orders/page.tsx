@@ -55,6 +55,7 @@ export default function CustomerOrdersPage() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    document.title = 'My Orders | ARILHA';
     const fetchOrders = async () => {
       setIsLoading(true);
       const user = authService.getStoredUser();

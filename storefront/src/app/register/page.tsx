@@ -21,6 +21,10 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  React.useEffect(() => {
+    document.title = 'Create Account | ARILHA';
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -52,11 +56,11 @@ export default function RegisterPage() {
   return (
     <div className="max-w-md mx-auto px-4 py-16 space-y-6">
       <div className="text-center space-y-2">
-        <span className="bg-black text-white font-black text-lg px-3 py-1 rounded-lg tracking-widest uppercase inline-block">
-          Femmeera
+        <span className="bg-neutral-900 text-white font-black text-lg px-3 py-1 rounded-lg tracking-widest uppercase inline-block">
+          ARILHA
         </span>
         <h1 className="text-2xl font-black uppercase tracking-tight text-neutral-900">Create Account</h1>
-        <p className="text-xs text-neutral-500">Join Femmeera for exclusive discounts & seamless order tracking</p>
+        <p className="text-xs text-neutral-500">Join ARILHA for exclusive discounts & seamless order tracking</p>
       </div>
 
       {error && (

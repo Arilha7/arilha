@@ -8,7 +8,7 @@ class TaxService
 {
     /**
      * Calculate tax for taxable subtotal.
-     * All product prices on Femmeera Store are 100% inclusive of all taxes.
+     * All product prices on ARILHA Store are 100% inclusive of all taxes.
      */
     public function calculateTax(float $taxableSubtotal): array
     {

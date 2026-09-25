@@ -71,7 +71,7 @@ function ResetPasswordFormContent() {
         <Link href="/" className="inline-block">
           <Image
             src="/logo.png"
-            alt="Femmeera"
+            alt="ARILHA by Irsa Khan"
             width={200}
             height={65}
             className="h-16 w-auto mx-auto object-contain"

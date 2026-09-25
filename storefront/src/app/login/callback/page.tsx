@@ -33,7 +33,7 @@ function GoogleCallbackContent() {
 
     // Step 1: Google redirected back with authorization code -> forward to backend for code exchange
     if (code) {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.femmeera.com/api/v1';
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
       const redirectUrl = `${apiBaseUrl}/auth/google/callback?${searchParams.toString()}`;
       window.location.href = redirectUrl;
       return;

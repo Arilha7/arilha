@@ -37,7 +37,7 @@ export default function ReturnsManagementPage() {
   const [toast, setToast] = useState<string | null>(null);
 
   const [policyForm, setPolicyForm] = useState({
-    title: 'Femmeera Return & Refund Policy',
+    title: 'ARILHA Return & Refund Policy',
     return_window_days: 7,
     allow_returns: true,
     allow_exchanges: true,
@@ -58,7 +58,7 @@ export default function ReturnsManagementPage() {
         setReturns(json.data);
         if (json.policy) {
           setPolicyForm({
-            title: json.policy.title || 'Femmeera Return & Refund Policy',
+            title: json.policy.title || 'ARILHA Return & Refund Policy',
             return_window_days: json.policy.return_window_days || 7,
             allow_returns: json.policy.allow_returns ?? true,
             allow_exchanges: json.policy.allow_exchanges ?? true,

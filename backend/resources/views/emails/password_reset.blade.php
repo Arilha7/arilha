@@ -6,11 +6,11 @@
     Dear {{ $customer_name ?? 'Valued Customer' }},
 </p>
 <p class="paragraph">
-    We received a request to reset the password for your Femmeera customer account.
+    We received a request to reset the password for your ARILHA account.
 </p>
 
 <div style="text-align: center; margin: 30px 0;">
-    <a href="{{ $reset_link ?? 'https://femmeera.com/login/reset-password' }}" class="btn">Reset Password</a>
+    <a href="{{ $reset_link ?? 'https://arilha.com/login/reset-password' }}" class="btn">Reset Password</a>
 </div>
 
 <p class="paragraph" style="font-size: 12px; color: #7A7A7A;">

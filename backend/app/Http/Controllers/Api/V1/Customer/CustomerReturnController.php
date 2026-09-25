@@ -134,7 +134,7 @@ class CustomerReturnController extends Controller
             );
 
             // 2. Admin Alert Email
-            $adminEmail = env('ADMIN_NOTIFICATION_EMAIL', env('MAIL_FROM_ADDRESS', 'admin@femmeera.com'));
+            $adminEmail = env('ADMIN_NOTIFICATION_EMAIL', env('MAIL_FROM_ADDRESS', 'admin@arilha.com'));
             \App\Jobs\SendEmailNotificationJob::dispatch(
                 'admin_new_return',
                 $adminEmail,

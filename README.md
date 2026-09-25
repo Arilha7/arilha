@@ -1,4 +1,4 @@
-# 🛍️ Femmeera — Luxury Women's Fashion E-Commerce Platform
+# 🛍️ ARILHA — Modern Indian Jewellery E-Commerce Platform
 
 A complete, full-stack E-Commerce ecosystem built for luxury women's ethnic & western apparel. Featuring a modern Next.js 16 storefront, a real-time admin management dashboard, an automated Laravel 11 REST API, Razorpay payment gateway integration, and Influencer Coupon & Analytics generator.
 
@@ -37,7 +37,7 @@ femmeera-store/
 ├── backend/            # Laravel 11 REST API Engine
 ├── storefront/         # Next.js 16 Customer Storefront App
 ├── admin/              # Next.js 16 Admin Management Dashboard App
-└── femmeera_db.sql     # Complete MySQL Database Dump
+└── arilha_db.sql       # Complete MySQL Database Dump
 ```
 
 ---
@@ -52,9 +52,9 @@ femmeera-store/
 
 ### 1. Database Setup
 1. Open phpMyAdmin or MySQL CLI.
-2. Create database and import `femmeera_db.sql`:
+2. Create database `arilha_db` and import `arilha_db.sql`:
    ```bash
-   mysql -u root -p < femmeera_db.sql
+   mysql -u root -p arilha_db < arilha_db.sql
    ```
 
 ### 2. Backend Setup (`backend/`)

@@ -16,7 +16,7 @@ class ProductAdminController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Product::with(['category', 'variants', 'images']);
+        $query = Product::with(['category', 'collections', 'variants', 'images']);
 
         if ($request->filled('search')) {
             $s = $request->input('search');
@@ -52,7 +52,7 @@ class ProductAdminController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $product = Product::with(['category', 'variants.inventory', 'images'])->find($id);
+        $product = Product::with(['category', 'collections', 'variants.inventory', 'images'])->find($id);
 
         if (!$product) {
             return response()->json([
@@ -78,6 +78,8 @@ class ProductAdminController extends Controller
             'status' => 'required|in:ACTIVE,INACTIVE,ARCHIVED',
             'description' => 'nullable|string',
             'short_description' => 'nullable|string',
+            'collection_ids' => 'nullable|array',
+            'collection_ids.*' => 'exists:collections,id',
             'images' => 'nullable|array',
             'images.*' => 'nullable',
             'variants' => 'nullable|array',
@@ -88,12 +90,16 @@ class ProductAdminController extends Controller
             'name' => $request->input('name'),
             'slug' => Str::slug($request->input('name')) . '-' . Str::random(5),
             'sku' => $request->input('sku'),
-            'brand' => $request->input('brand', 'Femmeera'),
+            'brand' => $request->input('brand', 'ARILHA'),
             'gender' => $request->input('gender', 'WOMEN'),
             'status' => $request->input('status', 'ACTIVE'),
             'description' => $request->input('description'),
             'short_description' => $request->input('short_description'),
         ]);
+
+        if ($request->has('collection_ids')) {
+            $product->collections()->sync($request->input('collection_ids'));
+        }
 
         // Attach variants if provided
         if ($request->has('variants') && is_array($request->input('variants'))) {
@@ -127,7 +133,7 @@ class ProductAdminController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Product created successfully.',
-            'data' => $product->load(['variants', 'images']),
+            'data' => $product->load(['collections', 'variants', 'images']),
         ], 201);
     }
 
@@ -144,6 +150,8 @@ class ProductAdminController extends Controller
             'status' => 'required|in:ACTIVE,INACTIVE,ARCHIVED',
             'description' => 'nullable|string',
             'short_description' => 'nullable|string',
+            'collection_ids' => 'nullable|array',
+            'collection_ids.*' => 'exists:collections,id',
             'images' => 'nullable|array',
             'images.*' => 'nullable',
         ]);
@@ -158,6 +166,10 @@ class ProductAdminController extends Controller
             'description' => $request->input('description'),
             'short_description' => $request->input('short_description'),
         ]);
+
+        if ($request->has('collection_ids')) {
+            $product->collections()->sync($request->input('collection_ids'));
+        }
 
         // If variants array supplied, sync variants
         if ($request->has('variants') && is_array($request->input('variants'))) {

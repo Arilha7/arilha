@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { apiClient } from '@/services/apiClient';
 import { categoryService } from '@/services/categoryService';
+import { collectionService, Collection } from '@/services/collectionService';
 import { mediaService } from '@/services/mediaService';
 import { Category, Product, ProductVariant } from '@/types';
 import { Card } from '@/components/ui/Card';
@@ -28,6 +29,8 @@ export default function EditProductClient() {
 
   const [product, setProduct] = useState<Product | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -37,7 +40,7 @@ export default function EditProductClient() {
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
-    brand: 'Femmeera',
+    brand: 'ARILHA',
     gender: 'WOMEN',
     status: 'ACTIVE',
     category_id: '',
@@ -78,22 +81,28 @@ export default function EditProductClient() {
   const loadProduct = async () => {
     setIsLoading(true);
     try {
-      const [prodRes, catRes] = await Promise.all([
-        apiClient<Product>(`/admin/products/${productId}`),
+      const [prodRes, catRes, colRes] = await Promise.all([
+        apiClient<Product & { collections?: Collection[] }>(`/admin/products/${productId}`),
         categoryService.getCategories(),
+        collectionService.getCollections(),
       ]);
 
       if (catRes.success && catRes.data) {
         setCategories(catRes.data);
       }
 
+      if (colRes.success && colRes.data) {
+        setCollections(colRes.data);
+      }
+
       if (prodRes.success && prodRes.data) {
         const p = prodRes.data;
         setProduct(p);
+        setSelectedCollectionIds(p.collections ? p.collections.map((c) => c.id) : []);
         setFormData({
           name: p.name || '',
           sku: p.sku || '',
-          brand: p.brand || 'Femmeera',
+          brand: p.brand || 'ARILHA',
           gender: p.gender || 'WOMEN',
           status: p.status || 'ACTIVE',
           category_id: p.category_id ? String(p.category_id) : '',
@@ -182,6 +191,7 @@ export default function EditProductClient() {
           gender: formData.gender,
           status: formData.status,
           category_id: formData.category_id ? Number(formData.category_id) : null,
+          collection_ids: selectedCollectionIds,
           description: formData.description,
           short_description: formData.short_description,
           images: formattedImagesPayload,
@@ -372,6 +382,44 @@ export default function EditProductClient() {
               ]}
               required
             />
+
+          {/* Collections Multi-Select Checklist */}
+          <div className="sm:col-span-3 space-y-2 p-3 bg-[#FAF6F0] rounded-xl border border-[#B38548]/30">
+            <label className="font-bold text-xs text-neutral-900 flex items-center space-x-1.5">
+              <Layers className="w-4 h-4 text-[#B38548]" />
+              <span>Assigned Collections (Select Multiple)</span>
+            </label>
+            <p className="text-[11px] text-neutral-500">
+              Select all collections this product should belong to (e.g. Earrings, Diwali Edit, New Arrivals, Best Sellers).
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+              {collections.map((col) => {
+                const isChecked = selectedCollectionIds.includes(col.id);
+                return (
+                  <label
+                    key={col.id}
+                    className={`flex items-center space-x-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
+                      isChecked
+                        ? 'bg-amber-100/80 border-amber-400 font-bold text-neutral-900'
+                        : 'bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => {
+                        setSelectedCollectionIds((prev) =>
+                          prev.includes(col.id) ? prev.filter((id) => id !== col.id) : [...prev, col.id]
+                        );
+                      }}
+                      className="rounded border-neutral-300 text-[#B38548] focus:ring-[#B38548] w-4 h-4"
+                    />
+                    <span className="truncate">{col.name}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
             <Select
               label="Status"
               value={formData.status}
@@ -418,9 +466,20 @@ export default function EditProductClient() {
       {/* 2. Product Gallery Photos */}
       <Card title="2. Product Gallery Photos & Color Links">
         <div className="space-y-4">
+          <div className="p-3 bg-[#FAF6F0] rounded-xl border border-[#B38548]/30 text-xs space-y-1">
+            <span className="font-bold text-neutral-900 block flex items-center gap-1.5">
+              💡 Product Photo Assignment Guide:
+            </span>
+            <ul className="list-disc list-inside text-[11px] text-neutral-600 space-y-0.5">
+              <li><strong className="text-[#B38548]">1st Image (Position 1):</strong> Primary / Main Template Image (shown as default catalog photo).</li>
+              <li><strong className="text-neutral-900">2nd Image (Position 2):</strong> Hover Image (shown automatically when customer hovers over product card).</li>
+              <li><strong>3rd+ Images:</strong> Additional Gallery &amp; Angle Photos.</li>
+            </ul>
+          </div>
+
           <div className="flex items-center justify-between">
             <p className="text-xs text-neutral-500">
-              Upload photos and link them to colors (e.g. Ivory White, Midnight Black). The first image will be primary.
+              Upload photos and link them to colors. The 1st image is Main/Template, 2nd image is Hover photo.
             </p>
             <label className="inline-flex items-center space-x-2 px-3 py-2 bg-neutral-900 text-white rounded-lg text-xs font-bold cursor-pointer hover:bg-neutral-800 transition-colors">
               <Upload className="w-3.5 h-3.5" />
@@ -442,8 +501,18 @@ export default function EditProductClient() {
                   <div className="relative h-40 w-full rounded-lg overflow-hidden bg-white">
                     <Image src={img.image_url} alt={`Product Image ${idx + 1}`} fill className="object-cover" />
                     {idx === 0 && (
-                      <span className="absolute top-2 left-2 bg-black text-white text-[10px] font-black px-2 py-0.5 rounded shadow">
-                        PRIMARY
+                      <span className="absolute top-2 left-2 bg-[#B38548] text-white text-[9px] font-black px-2 py-0.5 rounded shadow">
+                        1ST: MAIN (TEMPLATE)
+                      </span>
+                    )}
+                    {idx === 1 && (
+                      <span className="absolute top-2 left-2 bg-neutral-900 text-white text-[9px] font-black px-2 py-0.5 rounded shadow">
+                        2ND: HOVER PHOTO
+                      </span>
+                    )}
+                    {idx > 1 && (
+                      <span className="absolute top-2 left-2 bg-neutral-700/80 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow">
+                        GALLERY #{idx + 1}
                       </span>
                     )}
                     <button

@@ -3,15 +3,18 @@ import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Terms & Conditions | Femmeera',
-  description: "Read Femmeera's terms and conditions covering online shopping, products, orders, payments, shipping, returns and website usage.",
+  title: 'Terms & Conditions | ARILHA',
+  description: "Read ARILHA by Irsa Khan's terms and conditions covering online shopping, products, orders, payments, shipping, returns and website usage.",
+  alternates: {
+    canonical: 'https://arilha.com/terms',
+  },
 };
 
 const termsSections = [
   {
     num: "1",
     title: "Introduction",
-    content: "Welcome to Femmeera. By accessing or using our website (femmeera.com), you agree to comply with and be bound by these Terms & Conditions. Please read them carefully before making a purchase.",
+    content: "Welcome to ARILHA by Irsa Khan. By accessing or using our website (arilha.com), you agree to comply with and be bound by these Terms & Conditions. Please read them carefully before making a purchase.",
   },
   {
     num: "2",
@@ -21,7 +24,7 @@ const termsSections = [
   {
     num: "3",
     title: "Product Availability",
-    content: "Product availability may change based on inventory. Femmeera reserves the right to update product availability, stock levels, or discontinue items without prior notice.",
+    content: "Product availability may change based on inventory. ARILHA reserves the right to update product availability, stock levels, or discontinue items without prior notice.",
   },
   {
     num: "4",
@@ -31,7 +34,7 @@ const termsSections = [
   {
     num: "5",
     title: "Orders",
-    content: "After placing an order, you will receive an automated order confirmation via email. Femmeera reserves the right to cancel or reject an order in circumstances such as incorrect pricing, stock inventory issues, payment authorization failures, or suspected fraudulent activity.",
+    content: "After placing an order, you will receive an automated order confirmation via email. ARILHA reserves the right to cancel or reject an order in circumstances such as incorrect pricing, stock inventory issues, payment authorization failures, or suspected fraudulent activity.",
   },
   {
     num: "6",
@@ -46,7 +49,7 @@ const termsSections = [
   {
     num: "8",
     title: "Returns & Refunds",
-    content: "Returns, size exchanges, and refunds are governed by Femmeera's applicable Shipping & Returns Policy. Items returned must be unused, unwashed, and in original brand condition with all tags intact.",
+    content: "Returns, size exchanges, and refunds are governed by ARILHA's applicable Shipping & Returns Policy. Items returned must be unused, unworn, and in original brand condition with all tags intact.",
   },
   {
     num: "9",
@@ -61,17 +64,17 @@ const termsSections = [
   {
     num: "11",
     title: "Intellectual Property",
-    content: "All website content including the Femmeera brand name, logos, product photography, text descriptions, graphics, and UI design are protected by applicable intellectual property laws and may not be reproduced without written permission.",
+    content: "All website content including the ARILHA brand name, logos, product photography, text descriptions, graphics, and UI design are protected by applicable intellectual property laws and may not be reproduced without written permission.",
   },
   {
     num: "12",
     title: "Changes to Terms",
-    content: "Femmeera may update or modify these Terms & Conditions from time to time. Updated terms will be effective immediately upon publication on this page.",
+    content: "ARILHA may update or modify these Terms & Conditions from time to time. Updated terms will be effective immediately upon publication on this page.",
   },
   {
     num: "13",
     title: "Contact Information",
-    content: "For any questions or clarification regarding these Terms & Conditions, please contact Femmeera through our Contact Us page or email us at myfemmeera@gmail.com.",
+    content: "For any questions or clarification regarding these Terms & Conditions, please contact ARILHA through our Contact Us page or email us at support@arilha.com.",
   },
 ];
 
@@ -95,7 +98,7 @@ export default function TermsPage() {
             Terms & Conditions
           </h1>
           <p className="text-xs text-neutral-500 mt-2">
-            Read Femmeera's terms and conditions covering online shopping, products, orders, payments, shipping, returns and website usage.
+            Read ARILHA's terms and conditions covering online shopping, products, orders, payments, shipping, returns and website usage.
           </p>
         </div>
 
@@ -117,7 +120,7 @@ export default function TermsPage() {
         {/* Contact Footer Note */}
         <div className="bg-[#FAF4EB] p-6 rounded-3xl border border-[#EFE6D8] text-center space-y-2 text-xs text-neutral-600">
           <p>
-            Questions about our Terms & Conditions? Contact us at <a href="mailto:myfemmeera@gmail.com" className="font-bold text-[#B38548] underline">myfemmeera@gmail.com</a>.
+            Questions about our Terms & Conditions? Contact us at <a href="mailto:support@arilha.com" className="font-bold text-[#B38548] underline">support@arilha.com</a>.
           </p>
         </div>
 

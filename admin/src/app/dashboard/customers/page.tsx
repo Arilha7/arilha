@@ -20,11 +20,19 @@ import {
   ShieldCheck,
   RefreshCw,
   Eye,
-  X
+  X,
+  Quote,
+  HeartHandshake
 } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { TestimonialsManager } from '@/components/customers/TestimonialsManager';
 
 export default function CustomersPage() {
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'testimonials' ? 'testimonials' : 'directory';
+  const [activeTab, setActiveTab] = useState<'directory' | 'testimonials'>(initialTab);
+
   const [customers, setCustomers] = useState<CustomerUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +40,12 @@ export default function CustomersPage() {
   
   // Selected Customer Modal State
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerUser | null>(null);
+
+  useEffect(() => {
+    document.title = activeTab === 'testimonials'
+      ? 'Customer Testimonials | ARILHA Admin'
+      : 'Customers Directory | ARILHA Admin';
+  }, [activeTab]);
 
   const fetchCustomers = async (search?: string) => {
     setIsLoading(true);
@@ -127,25 +141,56 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
-            Registered Customers Directory
-          </h1>
-          <p className="text-xs text-neutral-500">
-            View all user accounts logged in, registered, and signed up across storefront
-          </p>
-        </div>
+      {/* Customers Section Sub-Navigation Tabs */}
+      <div className="flex items-center space-x-2 border-b border-neutral-200 pb-2">
+        <button
+          onClick={() => setActiveTab('directory')}
+          className={`inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+            activeTab === 'directory'
+              ? 'bg-neutral-900 text-white shadow-xs'
+              : 'bg-white text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 border border-neutral-200'
+          }`}
+        >
+          <Users className="w-3.5 h-3.5" />
+          <span>Registered Customers Directory</span>
+        </button>
 
         <button
-          onClick={() => fetchCustomers(searchQuery)}
-          className="inline-flex items-center space-x-1.5 px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-bold text-neutral-700 hover:bg-neutral-50 transition-colors shadow-2xs self-start sm:self-auto"
+          onClick={() => setActiveTab('testimonials')}
+          className={`inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+            activeTab === 'testimonials'
+              ? 'bg-neutral-900 text-white shadow-xs'
+              : 'bg-white text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 border border-neutral-200'
+          }`}
         >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Refresh Users</span>
+          <Quote className="w-3.5 h-3.5 text-[#B38548]" />
+          <span>Love From Our Customers (Testimonials)</span>
         </button>
       </div>
+
+      {activeTab === 'testimonials' ? (
+        <TestimonialsManager />
+      ) : (
+        <>
+          {/* Top Header Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
+                Registered Customers Directory
+              </h1>
+              <p className="text-xs text-neutral-500">
+                View all user accounts logged in, registered, and signed up across storefront
+              </p>
+            </div>
+
+            <button
+              onClick={() => fetchCustomers(searchQuery)}
+              className="inline-flex items-center space-x-1.5 px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-bold text-neutral-700 hover:bg-neutral-50 transition-colors shadow-2xs self-start sm:self-auto"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Refresh Users</span>
+            </button>
+          </div>
 
       {/* 4 Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -420,6 +465,8 @@ export default function CustomersPage() {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

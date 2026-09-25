@@ -6,7 +6,7 @@
     Dear {{ $order['shipping_address']['name'] ?? 'Customer' }},
 </p>
 <p class="paragraph">
-    Your order <strong>#{{ $order['order_number'] }}</strong> has been successfully delivered. We hope you adore your new Femmeera couture pieces!
+    Your order <strong>#{{ $order['order_number'] }}</strong> has been successfully delivered. We hope you adore your new ARILHA jewellery pieces!
 </p>
 
 <div style="background-color: #F0FFF4; border: 1px solid #C6F6D5; border-radius: 12px; padding: 16px; margin: 20px 0; text-align: center;">
@@ -14,9 +14,9 @@
 </div>
 
 <p class="paragraph">
-    If you have any feedback or require assistance with sizing or styling, our customer concierge is always available.
+    If you have any feedback or require assistance with care or styling, our customer support is always available.
 </p>
 <div style="text-align: center; margin: 25px 0;">
-    <a href="https://femmeera.com/account/orders" class="btn">Leave a Product Review</a>
+    <a href="https://arilha.com/account/orders" class="btn">Leave a Product Review</a>
 </div>
 @endsection

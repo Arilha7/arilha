@@ -27,9 +27,11 @@ export const MobileBottomNav: React.FC = () => {
     };
     update();
     window.addEventListener('storage', update);
+    window.addEventListener('arilha-auth-updated', update);
     window.addEventListener('femmeera-auth-updated', update);
     return () => {
       window.removeEventListener('storage', update);
+      window.removeEventListener('arilha-auth-updated', update);
       window.removeEventListener('femmeera-auth-updated', update);
     };
   }, []);

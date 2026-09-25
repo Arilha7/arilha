@@ -1,10 +1,39 @@
 -- ========================================================
--- Femmeera Store Complete SQL Database Dump
+-- ARILHA Store Complete SQL Database Dump
 -- Database: femmeera_db
--- Generated: 2026-08-25 15:50:29
+-- Generated: 2026-09-23 09:59:59
 -- ========================================================
 
 SET FOREIGN_KEY_CHECKS=0;
+
+-- --------------------------------------------------------
+-- Table structure for `abandoned_carts`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `abandoned_carts`;
+CREATE TABLE `abandoned_carts` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `cart_id` bigint unsigned DEFAULT NULL,
+  `guest_session_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `phone` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cart_data` json DEFAULT NULL,
+  `subtotal` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `reminder_status` enum('PENDING','SENT','CONVERTED','EXPIRED') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING',
+  `reminder_sent_at` timestamp NULL DEFAULT NULL,
+  `recovery_token` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `abandoned_carts_recovery_token_unique` (`recovery_token`),
+  KEY `abandoned_carts_cart_id_foreign` (`cart_id`),
+  KEY `abandoned_carts_user_id_foreign` (`user_id`),
+  KEY `abandoned_carts_guest_session_id_index` (`guest_session_id`),
+  KEY `abandoned_carts_email_index` (`email`),
+  KEY `abandoned_carts_reminder_status_index` (`reminder_status`),
+  CONSTRAINT `abandoned_carts_cart_id_foreign` FOREIGN KEY (`cart_id`) REFERENCES `carts` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `abandoned_carts_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for `announcements`
@@ -78,7 +107,176 @@ CREATE TABLE `audit_logs` (
   PRIMARY KEY (`id`),
   KEY `audit_logs_user_id_action_created_at_index` (`user_id`,`action`,`created_at`),
   CONSTRAINT `audit_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for `back_in_stock_subscriptions`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `back_in_stock_subscriptions`;
+CREATE TABLE `back_in_stock_subscriptions` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `product_id` bigint unsigned NOT NULL,
+  `variant_id` bigint unsigned DEFAULT NULL,
+  `status` enum('PENDING','NOTIFIED','UNSUBSCRIBED') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING',
+  `notified_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `bis_email_product_status_unique` (`email`,`product_id`,`status`),
+  KEY `back_in_stock_subscriptions_product_id_foreign` (`product_id`),
+  KEY `back_in_stock_subscriptions_variant_id_foreign` (`variant_id`),
+  KEY `back_in_stock_subscriptions_email_index` (`email`),
+  KEY `back_in_stock_subscriptions_status_index` (`status`),
+  CONSTRAINT `back_in_stock_subscriptions_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `back_in_stock_subscriptions_variant_id_foreign` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for `blog_categories`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `blog_categories`;
+CREATE TABLE `blog_categories` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `sort_order` int NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `blog_categories_slug_unique` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for `blog_faqs`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `blog_faqs`;
+CREATE TABLE `blog_faqs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `blog_post_id` bigint unsigned NOT NULL,
+  `question` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `answer` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sort_order` int NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `blog_faqs_blog_post_id_foreign` (`blog_post_id`),
+  CONSTRAINT `blog_faqs_blog_post_id_foreign` FOREIGN KEY (`blog_post_id`) REFERENCES `blog_posts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for `blog_post_related_posts`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `blog_post_related_posts`;
+CREATE TABLE `blog_post_related_posts` (
+  `blog_post_id` bigint unsigned NOT NULL,
+  `related_post_id` bigint unsigned NOT NULL,
+  `sort_order` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`blog_post_id`,`related_post_id`),
+  KEY `blog_post_related_posts_related_post_id_foreign` (`related_post_id`),
+  CONSTRAINT `blog_post_related_posts_blog_post_id_foreign` FOREIGN KEY (`blog_post_id`) REFERENCES `blog_posts` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `blog_post_related_posts_related_post_id_foreign` FOREIGN KEY (`related_post_id`) REFERENCES `blog_posts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for `blog_post_related_products`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `blog_post_related_products`;
+CREATE TABLE `blog_post_related_products` (
+  `blog_post_id` bigint unsigned NOT NULL,
+  `product_id` bigint unsigned NOT NULL,
+  `sort_order` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`blog_post_id`,`product_id`),
+  KEY `blog_post_related_products_product_id_foreign` (`product_id`),
+  CONSTRAINT `blog_post_related_products_blog_post_id_foreign` FOREIGN KEY (`blog_post_id`) REFERENCES `blog_posts` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `blog_post_related_products_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for `blog_post_tags`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `blog_post_tags`;
+CREATE TABLE `blog_post_tags` (
+  `blog_post_id` bigint unsigned NOT NULL,
+  `tag_id` bigint unsigned NOT NULL,
+  PRIMARY KEY (`blog_post_id`,`tag_id`),
+  KEY `blog_post_tags_tag_id_foreign` (`tag_id`),
+  CONSTRAINT `blog_post_tags_blog_post_id_foreign` FOREIGN KEY (`blog_post_id`) REFERENCES `blog_posts` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `blog_post_tags_tag_id_foreign` FOREIGN KEY (`tag_id`) REFERENCES `blog_tags` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for `blog_posts`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `blog_posts`;
+CREATE TABLE `blog_posts` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `excerpt` text COLLATE utf8mb4_unicode_ci,
+  `content` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `featured_image` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `featured_image_alt` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `featured_image_caption` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `author_id` bigint unsigned DEFAULT NULL,
+  `category_id` bigint unsigned DEFAULT NULL,
+  `status` enum('DRAFT','PUBLISHED','SCHEDULED') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'DRAFT',
+  `is_featured` tinyint(1) NOT NULL DEFAULT '0',
+  `published_at` timestamp NULL DEFAULT NULL,
+  `reading_time` int NOT NULL DEFAULT '5',
+  `seo_title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `meta_description` text COLLATE utf8mb4_unicode_ci,
+  `focus_keyword` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `secondary_keywords` text COLLATE utf8mb4_unicode_ci,
+  `canonical_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `robots_index` tinyint(1) NOT NULL DEFAULT '1',
+  `robots_follow` tinyint(1) NOT NULL DEFAULT '1',
+  `og_title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `og_description` text COLLATE utf8mb4_unicode_ci,
+  `og_image` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `twitter_title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `twitter_description` text COLLATE utf8mb4_unicode_ci,
+  `twitter_image` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `blog_posts_slug_unique` (`slug`),
+  KEY `blog_posts_author_id_foreign` (`author_id`),
+  KEY `blog_posts_status_index` (`status`),
+  KEY `blog_posts_published_at_index` (`published_at`),
+  KEY `blog_posts_category_id_index` (`category_id`),
+  CONSTRAINT `blog_posts_author_id_foreign` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `blog_posts_category_id_foreign` FOREIGN KEY (`category_id`) REFERENCES `blog_categories` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for `blog_redirects`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `blog_redirects`;
+CREATE TABLE `blog_redirects` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `old_slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `new_slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `blog_redirects_old_slug_unique` (`old_slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for `blog_tags`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `blog_tags`;
+CREATE TABLE `blog_tags` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `blog_tags_slug_unique` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for `cache`
@@ -111,6 +309,7 @@ CREATE TABLE `cart_items` (
   `cart_id` bigint unsigned NOT NULL,
   `variant_id` bigint unsigned NOT NULL,
   `quantity` int NOT NULL DEFAULT '1',
+  `is_free_gift` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -118,10 +317,7 @@ CREATE TABLE `cart_items` (
   KEY `cart_items_variant_id_foreign` (`variant_id`),
   CONSTRAINT `cart_items_cart_id_foreign` FOREIGN KEY (`cart_id`) REFERENCES `carts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `cart_items_variant_id_foreign` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Dumping data for table `cart_items` (1 rows)
-INSERT INTO `cart_items` (`id`, `cart_id`, `variant_id`, `quantity`, `created_at`, `updated_at`) VALUES (7, 7, 15, 1, '2026-08-25 15:45:12', '2026-08-25 15:45:12');
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for `carts`
@@ -140,10 +336,7 @@ CREATE TABLE `carts` (
   KEY `carts_guest_session_id_status_index` (`guest_session_id`,`status`),
   KEY `carts_guest_session_id_index` (`guest_session_id`),
   CONSTRAINT `carts_customer_id_foreign` FOREIGN KEY (`customer_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Dumping data for table `carts` (1 rows)
-INSERT INTO `carts` (`id`, `customer_id`, `guest_session_id`, `status`, `last_activity_at`, `created_at`, `updated_at`) VALUES (7, NULL, 'guest_ay6rtostkms_1787459006116', 'ACTIVE', '2026-08-25 15:45:14', '2026-08-25 15:45:09', '2026-08-25 15:45:14');
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for `categories`
@@ -169,12 +362,12 @@ CREATE TABLE `categories` (
   KEY `categories_slug_index` (`slug`),
   KEY `categories_status_index` (`status`),
   CONSTRAINT `categories_parent_id_foreign` FOREIGN KEY (`parent_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `categories` (3 rows)
-INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `description`, `image_url`, `banner_url`, `sort_order`, `status`, `seo_title`, `seo_description`, `created_at`, `updated_at`) VALUES (1, NULL, 'Women', 'women', 'Women\'s Clothing Catalog', NULL, NULL, 1, 'ACTIVE', 'Women\'s Clothing Collection | Femmeera', 'Discover traditional and western clothing for women at Femmeera.', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `description`, `image_url`, `banner_url`, `sort_order`, `status`, `seo_title`, `seo_description`, `created_at`, `updated_at`) VALUES (2, 1, 'Traditional Wear', 'traditional-wear', 'Exquisite Indian traditional clothing including sarees, kurtis, lehengas, and ethnic sets.', NULL, NULL, 1, 'ACTIVE', 'Women\'s Traditional Wear | Femmeera', 'Explore handcrafted traditional ethnic wear for women.', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `description`, `image_url`, `banner_url`, `sort_order`, `status`, `seo_title`, `seo_description`, `created_at`, `updated_at`) VALUES (3, 1, 'Western Wear', 'western-wear', 'Modern western wear including dresses, tops, t-shirts, jeans, and co-ord sets.', NULL, NULL, 2, 'ACTIVE', 'Women\'s Western Wear | Femmeera', 'Explore chic and comfortable western fashion for women.', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
+-- Dumping data for `categories`
+INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `description`, `image_url`, `banner_url`, `sort_order`, `status`, `seo_title`, `seo_description`, `created_at`, `updated_at`) VALUES ('1', NULL, 'Women', 'women', 'ARILHA Jewellery Catalogue', NULL, NULL, '1', 'ACTIVE', 'Jewellery Collection | ARILHA', 'Discover modern Indian jewellery by Irsa Khan at ARILHA.', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `description`, `image_url`, `banner_url`, `sort_order`, `status`, `seo_title`, `seo_description`, `created_at`, `updated_at`) VALUES ('2', '1', 'Kundan & Festive Jewellery', 'kundan-festive', 'Exquisite handcrafted Kundan chokers, bridal necklaces, and royal festive jewellery.', NULL, NULL, '1', 'ACTIVE', 'Kundan & Bridal Jewellery | ARILHA', 'Explore handcrafted Kundan chokers and royal bridal jewellery at ARILHA.', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `description`, `image_url`, `banner_url`, `sort_order`, `status`, `seo_title`, `seo_description`, `created_at`, `updated_at`) VALUES ('3', '1', 'Everyday & Anti-Tarnish Jewellery', 'everyday-jewellery', 'Modern anti-tarnish hoops, gold-plated stacking rings, layered chains, and daily bangles.', NULL, NULL, '2', 'ACTIVE', 'Anti-Tarnish & Gold-Plated Jewellery | ARILHA', 'Explore modern anti-tarnish and gold-plated everyday jewellery by Irsa Khan.', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
 
 -- --------------------------------------------------------
 -- Table structure for `collections`
@@ -243,8 +436,9 @@ CREATE TABLE `coupons` (
   UNIQUE KEY `coupons_code_unique` (`code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `coupons` (1 rows)
-INSERT INTO `coupons` (`id`, `code`, `name`, `influencer_name`, `influencer_handle`, `influencer_commission_percent`, `description`, `discount_type`, `discount_value`, `minimum_order_amount`, `maximum_discount_amount`, `usage_limit`, `usage_limit_per_customer`, `start_at`, `end_at`, `status`, `created_at`, `updated_at`) VALUES (2, 'PRIYANKA20', 'Priyanka Sharma Festive Promo', 'Priyanka Sharma', '@priyanka_couture', 10.00, NULL, 'PERCENTAGE', 20.00, 1000.00, 2000.00, 100, NULL, NULL, NULL, 'ACTIVE', '2026-08-25 15:50:13', '2026-08-25 15:50:13');
+-- Dumping data for `coupons`
+INSERT INTO `coupons` (`id`, `code`, `name`, `influencer_name`, `influencer_handle`, `influencer_commission_percent`, `description`, `discount_type`, `discount_value`, `minimum_order_amount`, `maximum_discount_amount`, `usage_limit`, `usage_limit_per_customer`, `start_at`, `end_at`, `status`, `created_at`, `updated_at`) VALUES ('1', 'WELCOME10', 'Welcome 10% Discount', NULL, NULL, '0.00', 'Get 10% off on your first order.', 'PERCENTAGE', '10.00', '499.00', '500.00', '1000', '1', '2026-09-22 09:51:27', '2027-03-23 09:51:27', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `coupons` (`id`, `code`, `name`, `influencer_name`, `influencer_handle`, `influencer_commission_percent`, `description`, `discount_type`, `discount_value`, `minimum_order_amount`, `maximum_discount_amount`, `usage_limit`, `usage_limit_per_customer`, `start_at`, `end_at`, `status`, `created_at`, `updated_at`) VALUES ('2', 'ARILHA10', 'ARILHA Launch Offer 10% Off', NULL, NULL, '0.00', 'Enjoy 10% flat discount on orders above ₹999.', 'PERCENTAGE', '10.00', '999.00', '500.00', '500', '2', '2026-09-22 09:51:27', '2026-12-23 09:51:27', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
 
 -- --------------------------------------------------------
 -- Table structure for `customer_addresses`
@@ -289,22 +483,22 @@ CREATE TABLE `email_notification_settings` (
   UNIQUE KEY `email_notification_settings_event_key_unique` (`event_key`)
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `email_notification_settings` (15 rows)
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (1, 'welcome_email', 'Welcome Email', 'Sent to new customers upon account registration.', 'customer', 1, 'Welcome to Femmeera - Exclusive Luxury Fashion', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (2, 'order_confirmation', 'Order Confirmation', 'Sent after payment verification or COD checkout.', 'customer', 1, 'Order Confirmation - Femmeera #{order_number}', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (3, 'payment_confirmation', 'Payment Receipt', 'Sent after successful Razorpay payment verification.', 'customer', 1, 'Payment Received for Order #{order_number}', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (4, 'order_processing', 'Order Processing', 'Sent when order status changes to Processing.', 'customer', 1, 'Your Order #{order_number} is being Processed', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (5, 'order_shipped', 'Order Shipped', 'Sent when order status changes to Shipped.', 'customer', 1, 'Your Order #{order_number} has been Shipped!', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (6, 'order_delivered', 'Order Delivered', 'Sent when order status changes to Delivered.', 'customer', 1, 'Your Order #{order_number} has been Delivered', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (7, 'return_requested', 'Return Requested', 'Sent to customer when return request is submitted.', 'customer', 1, 'Return Request Received for Order #{order_number}', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (8, 'return_approved', 'Return Approved', 'Sent when admin approves a return request.', 'customer', 1, 'Return Request Approved for Order #{order_number}', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (9, 'return_rejected', 'Return Rejected', 'Sent when admin rejects a return request.', 'customer', 1, 'Update on Return Request for Order #{order_number}', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (10, 'refund_initiated', 'Refund Initiated', 'Sent when refund processing is initiated.', 'customer', 1, 'Refund Initiated for Order #{order_number}', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (11, 'refund_completed', 'Refund Completed', 'Sent when refund is completed.', 'customer', 1, 'Refund Processed Successfully for Order #{order_number}', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (12, 'password_reset', 'Password Reset', 'Sent when customer requests password reset link.', 'customer', 1, 'Reset Your Femmeera Account Password', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (13, 'admin_new_order', 'Admin: New Order Placed', 'Notification to admin when a new order is verified.', 'admin', 1, '[ALERT] New Order Placed #{order_number}', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (14, 'admin_new_return', 'Admin: New Return Request', 'Notification to admin when customer files return.', 'admin', 1, '[ALERT] New Return Request for Order #{order_number}', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES (15, 'admin_payment_failure', 'Admin: Payment Failure', 'Notification to admin when payment verification fails.', 'admin', 1, '[ALERT] Payment Verification Failed for Order #{order_number}', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
+-- Dumping data for `email_notification_settings`
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('1', 'welcome_email', 'Welcome Email', 'Sent to new customers upon account registration.', 'customer', '1', 'Welcome to ARILHA - Modern Indian Jewellery', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('2', 'order_confirmation', 'Order Confirmation', 'Sent after payment verification or COD checkout.', 'customer', '1', 'Order Confirmation - ARILHA #{order_number}', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('3', 'payment_confirmation', 'Payment Receipt', 'Sent after successful Razorpay payment verification.', 'customer', '1', 'Payment Received for Order #{order_number}', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('4', 'order_processing', 'Order Processing', 'Sent when order status changes to Processing.', 'customer', '1', 'Your Order #{order_number} is being Processed', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('5', 'order_shipped', 'Order Shipped', 'Sent when order status changes to Shipped.', 'customer', '1', 'Your Order #{order_number} has been Shipped!', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('6', 'order_delivered', 'Order Delivered', 'Sent when order status changes to Delivered.', 'customer', '1', 'Your Order #{order_number} has been Delivered', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('7', 'return_requested', 'Return Requested', 'Sent to customer when return request is submitted.', 'customer', '1', 'Return Request Received for Order #{order_number}', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('8', 'return_approved', 'Return Approved', 'Sent when admin approves a return request.', 'customer', '1', 'Return Request Approved for Order #{order_number}', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('9', 'return_rejected', 'Return Rejected', 'Sent when admin rejects a return request.', 'customer', '1', 'Update on Return Request for Order #{order_number}', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('10', 'refund_initiated', 'Refund Initiated', 'Sent when refund processing is initiated.', 'customer', '1', 'Refund Initiated for Order #{order_number}', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('11', 'refund_completed', 'Refund Completed', 'Sent when refund is completed.', 'customer', '1', 'Refund Processed Successfully for Order #{order_number}', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('12', 'password_reset', 'Password Reset', 'Sent when customer requests password reset link.', 'customer', '1', 'Reset Your ARILHA Account Password', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('13', 'admin_new_order', 'Admin: New Order Placed', 'Notification to admin when a new order is verified.', 'admin', '1', '[ALERT] New Order Placed #{order_number}', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('14', 'admin_new_return', 'Admin: New Return Request', 'Notification to admin when customer files return.', 'admin', '1', '[ALERT] New Return Request for Order #{order_number}', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
+INSERT INTO `email_notification_settings` (`id`, `event_key`, `name`, `description`, `recipient_type`, `is_enabled`, `subject_template`, `created_at`, `updated_at`) VALUES ('15', 'admin_payment_failure', 'Admin: Payment Failure', 'Notification to admin when payment verification fails.', 'admin', '1', '[ALERT] Payment Verification Failed for Order #{order_number}', '2026-09-23 09:51:21', '2026-09-23 09:51:21');
 
 -- --------------------------------------------------------
 -- Table structure for `failed_jobs`
@@ -320,6 +514,52 @@ CREATE TABLE `failed_jobs` (
   `failed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for `free_gift_campaigns`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `free_gift_campaigns`;
+CREATE TABLE `free_gift_campaigns` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Free Gift Offer',
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `min_order_amount` decimal(12,2) NOT NULL DEFAULT '500.00',
+  `online_payment_eligible` tinyint(1) NOT NULL DEFAULT '1',
+  `cod_eligible_above_threshold` tinyint(1) NOT NULL DEFAULT '1',
+  `max_gifts_per_order` int NOT NULL DEFAULT '1',
+  `start_at` timestamp NULL DEFAULT NULL,
+  `end_at` timestamp NULL DEFAULT NULL,
+  `status` enum('ACTIVE','INACTIVE') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for `free_gift_items`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `free_gift_items`;
+CREATE TABLE `free_gift_items` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `campaign_id` bigint unsigned DEFAULT NULL,
+  `product_id` bigint unsigned NOT NULL,
+  `variant_id` bigint unsigned DEFAULT NULL,
+  `gift_title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `display_image_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `gift_stock` int NOT NULL DEFAULT '100',
+  `claimed_count` int NOT NULL DEFAULT '0',
+  `status` enum('ACTIVE','INACTIVE') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `free_gift_items_campaign_id_foreign` (`campaign_id`),
+  KEY `free_gift_items_variant_id_foreign` (`variant_id`),
+  KEY `free_gift_items_product_id_status_index` (`product_id`,`status`),
+  CONSTRAINT `free_gift_items_campaign_id_foreign` FOREIGN KEY (`campaign_id`) REFERENCES `free_gift_campaigns` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `free_gift_items_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `free_gift_items_variant_id_foreign` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -363,11 +603,11 @@ CREATE TABLE `homepage_sections` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `homepage_sections` (4 rows)
-INSERT INTO `homepage_sections` (`id`, `type`, `title`, `subtitle`, `content`, `image_url`, `button_text`, `button_url`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES (1, 'HERO', 'Festive Collection 2026', 'Handcrafted Sarees & Kurtis', NULL, NULL, NULL, NULL, 1, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `homepage_sections` (`id`, `type`, `title`, `subtitle`, `content`, `image_url`, `button_text`, `button_url`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES (2, 'CATEGORY_GRID', 'Shop By Category', 'Explore Traditional & Western Trends', NULL, NULL, NULL, NULL, 2, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `homepage_sections` (`id`, `type`, `title`, `subtitle`, `content`, `image_url`, `button_text`, `button_url`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES (3, 'PRODUCT_GRID', 'Fresh New Arrivals', 'Handpicked for You', NULL, NULL, NULL, NULL, 3, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `homepage_sections` (`id`, `type`, `title`, `subtitle`, `content`, `image_url`, `button_text`, `button_url`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES (4, 'BANNER', 'Flat 20% Off Festive Edit', 'Use code FESTIVE20 at checkout', NULL, NULL, NULL, NULL, 4, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
+-- Dumping data for `homepage_sections`
+INSERT INTO `homepage_sections` (`id`, `type`, `title`, `subtitle`, `content`, `image_url`, `button_text`, `button_url`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES ('1', 'HERO', 'ARILHA Jewellery Collection 2026', 'Modern Indian Jewellery by Irsa Khan', NULL, NULL, NULL, NULL, '1', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `homepage_sections` (`id`, `type`, `title`, `subtitle`, `content`, `image_url`, `button_text`, `button_url`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES ('2', 'CATEGORY_GRID', 'Shop By Category', 'Explore Kundan, Anti-Tarnish & Everyday Edits', NULL, NULL, NULL, NULL, '2', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `homepage_sections` (`id`, `type`, `title`, `subtitle`, `content`, `image_url`, `button_text`, `button_url`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES ('3', 'PRODUCT_GRID', 'Fresh New Arrivals', 'Handpicked for You', NULL, NULL, NULL, NULL, '3', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `homepage_sections` (`id`, `type`, `title`, `subtitle`, `content`, `image_url`, `button_text`, `button_url`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES ('4', 'BANNER', 'Flat 10% Off Your First Order', 'Use code WELCOME10 at checkout', NULL, NULL, NULL, NULL, '4', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
 
 -- --------------------------------------------------------
 -- Table structure for `inventory`
@@ -385,24 +625,15 @@ CREATE TABLE `inventory` (
   UNIQUE KEY `inventory_variant_id_unique` (`variant_id`),
   KEY `inventory_variant_id_index` (`variant_id`),
   CONSTRAINT `inventory_variant_id_foreign` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `inventory` (15 rows)
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (1, 1, 15, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (2, 2, 20, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (3, 3, 10, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (4, 4, 12, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (5, 5, 25, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (6, 6, 15, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (7, 7, 18, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (8, 8, 22, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (9, 9, 30, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (10, 10, 35, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (11, 11, 20, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (12, 12, 25, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (13, 13, 40, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (14, 14, 12, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES (15, 15, 15, 0, 5, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
+-- Dumping data for `inventory`
+INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES ('1', '1', '20', '0', '5', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES ('2', '2', '15', '0', '5', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES ('3', '3', '30', '0', '5', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES ('4', '4', '25', '0', '5', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES ('5', '5', '40', '0', '5', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `inventory` (`id`, `variant_id`, `available_quantity`, `reserved_quantity`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES ('6', '6', '35', '0', '5', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
 
 -- --------------------------------------------------------
 -- Table structure for `inventory_transactions`
@@ -424,24 +655,7 @@ CREATE TABLE `inventory_transactions` (
   KEY `inventory_transactions_type_index` (`type`),
   CONSTRAINT `inventory_transactions_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `inventory_transactions_variant_id_foreign` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Dumping data for table `inventory_transactions` (15 rows)
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (1, 1, 'PURCHASE', 15, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (2, 2, 'PURCHASE', 20, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (3, 3, 'PURCHASE', 10, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (4, 4, 'PURCHASE', 12, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (5, 5, 'PURCHASE', 25, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (6, 6, 'PURCHASE', 15, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (7, 7, 'PURCHASE', 18, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (8, 8, 'PURCHASE', 22, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (9, 9, 'PURCHASE', 30, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (10, 10, 'PURCHASE', 35, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (11, 11, 'PURCHASE', 20, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (12, 12, 'PURCHASE', 25, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (13, 13, 'PURCHASE', 40, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (14, 14, 'PURCHASE', 12, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
-INSERT INTO `inventory_transactions` (`id`, `variant_id`, `type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES (15, 15, 'PURCHASE', 15, 'PURCHASE_ORDER', 'INIT-PO-2026', 'Initial stock intake for demo product launch', 1, '2026-08-25 15:41:39');
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for `job_batches`
@@ -486,32 +700,39 @@ CREATE TABLE `migrations` (
   `migration` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `migrations` (23 rows)
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (1, '0001_01_01_000001_create_cache_table', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (2, '0001_01_01_000002_create_jobs_table', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (3, '2026_01_01_000000_create_personal_access_tokens_table', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (4, '2026_01_01_000001_create_users_table', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (5, '2026_01_01_000002_create_rbac_tables', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (6, '2026_01_01_000003_create_catalog_tables', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (7, '2026_01_01_000004_create_inventory_tables', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (8, '2026_01_01_000005_create_cart_and_wishlist_tables', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (9, '2026_01_01_000006_create_addresses_table', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (10, '2026_01_01_000007_create_order_tables', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (11, '2026_01_01_000008_create_payment_tables', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (12, '2026_01_01_000009_create_marketing_tables', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (13, '2026_01_01_000010_create_review_tables', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (14, '2026_01_01_000011_create_cms_tables', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (15, '2026_01_01_000012_create_shipping_and_system_tables', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (16, '2026_01_01_000014_create_watch_and_shop_videos_table', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (17, '2026_08_23_090001_create_phase7_cart_checkout_tables', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (18, '2026_08_23_120000_create_phase8_payment_tables', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (19, '2026_08_24_180000_add_google_id_to_users_table', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (20, '2026_08_24_200000_create_shipping_and_returns_tables', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (21, '2026_08_25_140000_create_email_notification_settings_table', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (22, '2026_08_25_150000_ensure_razorpay_indexes_and_fields', 1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (23, '2026_08_25_160000_add_influencer_fields_to_coupons_table', 2);
+-- Dumping data for `migrations`
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('1', '0001_01_01_000001_create_cache_table', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('2', '0001_01_01_000002_create_jobs_table', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('3', '2026_01_01_000000_create_personal_access_tokens_table', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('4', '2026_01_01_000001_create_users_table', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('5', '2026_01_01_000002_create_rbac_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('6', '2026_01_01_000003_create_catalog_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('7', '2026_01_01_000004_create_inventory_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('8', '2026_01_01_000005_create_cart_and_wishlist_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('9', '2026_01_01_000006_create_addresses_table', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('10', '2026_01_01_000007_create_order_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('11', '2026_01_01_000008_create_payment_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('12', '2026_01_01_000009_create_marketing_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('13', '2026_01_01_000010_create_review_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('14', '2026_01_01_000011_create_cms_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('15', '2026_01_01_000012_create_shipping_and_system_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('16', '2026_01_01_000014_create_watch_and_shop_videos_table', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('17', '2026_08_23_090001_create_phase7_cart_checkout_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('18', '2026_08_23_120000_create_phase8_payment_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('19', '2026_08_24_180000_add_google_id_to_users_table', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('20', '2026_08_24_200000_create_shipping_and_returns_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('21', '2026_08_25_140000_create_email_notification_settings_table', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('22', '2026_08_25_150000_ensure_razorpay_indexes_and_fields', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('23', '2026_08_25_160000_add_influencer_fields_to_coupons_table', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('24', '2026_09_01_000001_add_color_fields_to_catalog_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('25', '2026_09_01_000002_add_soft_deletes_to_products_table', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('26', '2026_09_04_180000_add_shiprocket_fields_to_orders_table', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('27', '2026_09_22_000000_create_blog_system_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('28', '2026_09_22_000001_enhance_review_system_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('29', '2026_09_23_000000_create_free_gifts_and_otp_tables', '1');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('30', '2026_09_23_000001_create_bundles_abandoned_cart_and_back_in_stock_tables', '1');
 
 -- --------------------------------------------------------
 -- Table structure for `notifications`
@@ -594,6 +815,7 @@ CREATE TABLE `order_items` (
   `quantity` int NOT NULL,
   `unit_price` decimal(12,2) NOT NULL,
   `discount_amount` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `is_free_gift` tinyint(1) NOT NULL DEFAULT '0',
   `total_amount` decimal(12,2) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -603,7 +825,7 @@ CREATE TABLE `order_items` (
   CONSTRAINT `order_items_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `order_items_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `order_items_variant_id_foreign` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for `order_returns`
@@ -632,7 +854,7 @@ CREATE TABLE `order_returns` (
   CONSTRAINT `order_returns_order_item_id_foreign` FOREIGN KEY (`order_item_id`) REFERENCES `order_items` (`id`) ON DELETE CASCADE,
   CONSTRAINT `order_returns_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   CONSTRAINT `order_returns_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for `order_status_history`
@@ -651,7 +873,7 @@ CREATE TABLE `order_status_history` (
   KEY `order_status_history_changed_by_foreign` (`changed_by`),
   CONSTRAINT `order_status_history_changed_by_foreign` FOREIGN KEY (`changed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `order_status_history_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for `orders`
@@ -672,6 +894,13 @@ CREATE TABLE `orders` (
   `shipping_address_snapshot` json NOT NULL,
   `billing_address_snapshot` json NOT NULL,
   `carrier` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `shiprocket_order_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `shiprocket_shipment_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `shiprocket_courier_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `courier_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `shipment_status` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `chargeable_weight` decimal(10,2) DEFAULT NULL,
+  `awb_code` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `tracking_number` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `tracking_url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `shipped_at` timestamp NULL DEFAULT NULL,
@@ -685,7 +914,24 @@ CREATE TABLE `orders` (
   KEY `orders_order_status_index` (`order_status`),
   KEY `orders_created_at_index` (`created_at`),
   CONSTRAINT `orders_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for `otps`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `otps`;
+CREATE TABLE `otps` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `identifier` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `otp_hash` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expires_at` timestamp NOT NULL,
+  `attempts_count` int NOT NULL DEFAULT '0',
+  `last_sent_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `otps_identifier_index` (`identifier`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for `password_reset_tokens`
@@ -717,7 +963,7 @@ CREATE TABLE `payment_transactions` (
   PRIMARY KEY (`id`),
   KEY `payment_transactions_payment_id_foreign` (`payment_id`),
   CONSTRAINT `payment_transactions_payment_id_foreign` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for `payments`
@@ -745,7 +991,7 @@ CREATE TABLE `payments` (
   KEY `payments_order_id_foreign` (`order_id`),
   KEY `payments_provider_payment_id_index` (`provider_payment_id`),
   CONSTRAINT `payments_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for `permission_role`
@@ -760,121 +1006,121 @@ CREATE TABLE `permission_role` (
   CONSTRAINT `permission_role_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `permission_role` (114 rows)
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (1, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (2, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (3, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (4, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (5, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (6, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (7, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (8, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (9, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (10, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (11, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (12, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (13, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (14, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (15, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (16, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (17, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (18, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (19, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (20, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (21, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (22, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (23, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (24, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (25, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (26, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (27, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (28, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (29, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (30, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (31, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (32, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (33, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (34, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (35, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (36, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (37, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (38, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (39, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (40, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (41, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (42, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (43, 1);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (1, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (2, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (3, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (4, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (5, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (6, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (7, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (8, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (9, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (10, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (11, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (12, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (13, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (14, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (15, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (16, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (17, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (18, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (19, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (20, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (21, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (22, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (23, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (24, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (25, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (26, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (27, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (28, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (29, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (30, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (31, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (32, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (33, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (34, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (35, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (36, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (37, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (38, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (39, 2);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (1, 3);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (2, 3);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (3, 3);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (4, 3);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (5, 3);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (6, 3);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (7, 3);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (8, 3);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (9, 4);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (10, 4);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (11, 5);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (12, 5);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (13, 5);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (14, 5);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (19, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (20, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (21, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (22, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (23, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (24, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (25, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (26, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (27, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (28, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (29, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (30, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (31, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (32, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (33, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (34, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (35, 6);
-INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES (36, 6);
+-- Dumping data for `permission_role`
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('1', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('2', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('3', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('4', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('5', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('6', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('7', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('8', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('9', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('10', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('11', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('12', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('13', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('14', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('15', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('16', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('17', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('18', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('19', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('20', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('21', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('22', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('23', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('24', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('25', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('26', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('27', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('28', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('29', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('30', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('31', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('32', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('33', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('34', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('35', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('36', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('37', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('38', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('39', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('40', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('41', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('42', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('43', '1');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('1', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('2', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('3', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('4', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('5', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('6', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('7', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('8', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('9', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('10', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('11', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('12', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('13', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('14', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('15', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('16', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('17', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('18', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('19', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('20', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('21', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('22', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('23', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('24', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('25', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('26', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('27', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('28', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('29', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('30', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('31', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('32', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('33', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('34', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('35', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('36', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('37', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('38', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('39', '2');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('1', '3');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('2', '3');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('3', '3');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('4', '3');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('5', '3');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('6', '3');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('7', '3');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('8', '3');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('9', '4');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('10', '4');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('11', '5');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('12', '5');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('13', '5');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('14', '5');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('19', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('20', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('21', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('22', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('23', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('24', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('25', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('26', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('27', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('28', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('29', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('30', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('31', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('32', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('33', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('34', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('35', '6');
+INSERT INTO `permission_role` (`permission_id`, `role_id`) VALUES ('36', '6');
 
 -- --------------------------------------------------------
 -- Table structure for `permissions`
@@ -891,50 +1137,50 @@ CREATE TABLE `permissions` (
   UNIQUE KEY `permissions_name_unique` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `permissions` (43 rows)
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (1, 'products.view', 'catalog', 'View products', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (2, 'products.create', 'catalog', 'Create products and variants', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (3, 'products.update', 'catalog', 'Update products and variants', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (4, 'products.delete', 'catalog', 'Delete products', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (5, 'categories.view', 'catalog', 'View categories', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (6, 'categories.create', 'catalog', 'Create categories', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (7, 'categories.update', 'catalog', 'Update categories', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (8, 'categories.delete', 'catalog', 'Delete categories', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (9, 'inventory.view', 'inventory', 'View inventory stock balances', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (10, 'inventory.update', 'inventory', 'Adjust stock and record inventory transactions', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (11, 'orders.view', 'orders', 'View order history', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (12, 'orders.update', 'orders', 'Update order processing status', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (13, 'orders.cancel', 'orders', 'Cancel orders', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (14, 'orders.refund', 'orders', 'Issue order refunds', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (15, 'customers.view', 'customers', 'View customer profiles', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (16, 'customers.update', 'customers', 'Update customer status', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (17, 'reviews.view', 'reviews', 'View product reviews', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (18, 'reviews.moderate', 'reviews', 'Approve or reject customer reviews', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (19, 'coupons.view', 'marketing', 'View promo coupons', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (20, 'coupons.create', 'marketing', 'Create coupons', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (21, 'coupons.update', 'marketing', 'Update coupons', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (22, 'coupons.delete', 'marketing', 'Disable or delete coupons', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (23, 'offers.view', 'marketing', 'View promotional offers', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (24, 'offers.create', 'marketing', 'Create offers', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (25, 'offers.update', 'marketing', 'Update offers', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (26, 'offers.delete', 'marketing', 'Delete offers', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (27, 'homepage.view', 'cms', 'View homepage section layouts', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (28, 'homepage.update', 'cms', 'Update homepage sections', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (29, 'banners.view', 'cms', 'View hero banners', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (30, 'banners.create', 'cms', 'Create hero banners', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (31, 'banners.update', 'cms', 'Update hero banners', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (32, 'banners.delete', 'cms', 'Delete hero banners', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (33, 'popups.view', 'cms', 'View promotional popups', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (34, 'popups.create', 'cms', 'Create popups', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (35, 'popups.update', 'cms', 'Update popups', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (36, 'popups.delete', 'cms', 'Delete popups', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (37, 'reports.view', 'reports', 'View sales & analytics dashboard reports', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (38, 'settings.view', 'settings', 'View system settings', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (39, 'settings.update', 'settings', 'Update store settings', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (40, 'users.view', 'users', 'View admin users', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (41, 'users.create', 'users', 'Create admin users', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (42, 'users.update', 'users', 'Update admin users and roles', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES (43, 'users.delete', 'users', 'Disable or remove admin users', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
+-- Dumping data for `permissions`
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('1', 'products.view', 'catalog', 'View products', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('2', 'products.create', 'catalog', 'Create products and variants', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('3', 'products.update', 'catalog', 'Update products and variants', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('4', 'products.delete', 'catalog', 'Delete products', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('5', 'categories.view', 'catalog', 'View categories', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('6', 'categories.create', 'catalog', 'Create categories', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('7', 'categories.update', 'catalog', 'Update categories', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('8', 'categories.delete', 'catalog', 'Delete categories', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('9', 'inventory.view', 'inventory', 'View inventory stock balances', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('10', 'inventory.update', 'inventory', 'Adjust stock and record inventory transactions', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('11', 'orders.view', 'orders', 'View order history', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('12', 'orders.update', 'orders', 'Update order processing status', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('13', 'orders.cancel', 'orders', 'Cancel orders', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('14', 'orders.refund', 'orders', 'Issue order refunds', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('15', 'customers.view', 'customers', 'View customer profiles', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('16', 'customers.update', 'customers', 'Update customer status', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('17', 'reviews.view', 'reviews', 'View product reviews', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('18', 'reviews.moderate', 'reviews', 'Approve or reject customer reviews', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('19', 'coupons.view', 'marketing', 'View promo coupons', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('20', 'coupons.create', 'marketing', 'Create coupons', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('21', 'coupons.update', 'marketing', 'Update coupons', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('22', 'coupons.delete', 'marketing', 'Disable or delete coupons', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('23', 'offers.view', 'marketing', 'View promotional offers', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('24', 'offers.create', 'marketing', 'Create offers', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('25', 'offers.update', 'marketing', 'Update offers', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('26', 'offers.delete', 'marketing', 'Delete offers', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('27', 'homepage.view', 'cms', 'View homepage section layouts', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('28', 'homepage.update', 'cms', 'Update homepage sections', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('29', 'banners.view', 'cms', 'View hero banners', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('30', 'banners.create', 'cms', 'Create hero banners', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('31', 'banners.update', 'cms', 'Update hero banners', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('32', 'banners.delete', 'cms', 'Delete hero banners', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('33', 'popups.view', 'cms', 'View promotional popups', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('34', 'popups.create', 'cms', 'Create popups', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('35', 'popups.update', 'cms', 'Update popups', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('36', 'popups.delete', 'cms', 'Delete popups', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('37', 'reports.view', 'reports', 'View sales & analytics dashboard reports', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('38', 'settings.view', 'settings', 'View system settings', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('39', 'settings.update', 'settings', 'Update store settings', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('40', 'users.view', 'users', 'View admin users', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('41', 'users.create', 'users', 'Create admin users', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('42', 'users.update', 'users', 'Update admin users and roles', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `permissions` (`id`, `name`, `module`, `description`, `created_at`, `updated_at`) VALUES ('43', 'users.delete', 'users', 'Disable or remove admin users', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
 
 -- --------------------------------------------------------
 -- Table structure for `personal_access_tokens`
@@ -954,7 +1200,7 @@ CREATE TABLE `personal_access_tokens` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
   KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for `popups`
@@ -992,6 +1238,52 @@ CREATE TABLE `product_attribute_values` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
+-- Table structure for `product_bundle_items`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `product_bundle_items`;
+CREATE TABLE `product_bundle_items` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `bundle_id` bigint unsigned NOT NULL,
+  `product_id` bigint unsigned NOT NULL,
+  `variant_id` bigint unsigned DEFAULT NULL,
+  `quantity` int NOT NULL DEFAULT '1',
+  `unit_price` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `product_bundle_items_bundle_id_foreign` (`bundle_id`),
+  KEY `product_bundle_items_product_id_foreign` (`product_id`),
+  KEY `product_bundle_items_variant_id_foreign` (`variant_id`),
+  CONSTRAINT `product_bundle_items_bundle_id_foreign` FOREIGN KEY (`bundle_id`) REFERENCES `product_bundles` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `product_bundle_items_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `product_bundle_items_variant_id_foreign` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for `product_bundles`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `product_bundles`;
+CREATE TABLE `product_bundles` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `image_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `original_total_price` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `bundle_price` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `savings_amount` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `start_at` timestamp NULL DEFAULT NULL,
+  `end_at` timestamp NULL DEFAULT NULL,
+  `priority` int NOT NULL DEFAULT '0',
+  `status` enum('ACTIVE','INACTIVE') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `product_bundles_slug_unique` (`slug`),
+  KEY `product_bundles_status_index` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
 -- Table structure for `product_images`
 -- --------------------------------------------------------
 DROP TABLE IF EXISTS `product_images`;
@@ -999,6 +1291,7 @@ CREATE TABLE `product_images` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `product_id` bigint unsigned NOT NULL,
   `product_variant_id` bigint unsigned DEFAULT NULL,
+  `color_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `image_url` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL,
   `alt_text` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `sort_order` int NOT NULL DEFAULT '0',
@@ -1010,18 +1303,15 @@ CREATE TABLE `product_images` (
   KEY `idx_img_prod_sort` (`product_id`,`sort_order`),
   CONSTRAINT `product_images_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   CONSTRAINT `product_images_product_variant_id_foreign` FOREIGN KEY (`product_variant_id`) REFERENCES `product_variants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `product_images` (9 rows)
-INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES (1, 1, NULL, 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=1200&auto=format&fit=crop', NULL, 1, 1, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES (2, 1, NULL, 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1200&auto=format&fit=crop', NULL, 2, 0, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES (3, 1, NULL, 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1200&auto=format&fit=crop', NULL, 3, 0, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES (4, 2, NULL, 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1200&auto=format&fit=crop', NULL, 1, 1, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES (5, 2, NULL, 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=1200&auto=format&fit=crop', NULL, 2, 0, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES (6, 3, NULL, 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1200&auto=format&fit=crop', NULL, 1, 1, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES (7, 4, NULL, 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop', NULL, 1, 1, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES (8, 5, NULL, 'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?q=80&w=1200&auto=format&fit=crop', NULL, 1, 1, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES (9, 6, NULL, 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=1200&auto=format&fit=crop', NULL, 1, 1, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
+-- Dumping data for `product_images`
+INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `color_name`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES ('1', '1', NULL, NULL, 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1200&auto=format&fit=crop', NULL, '1', '1', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `color_name`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES ('2', '1', NULL, NULL, 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=1200&auto=format&fit=crop', NULL, '2', '0', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `color_name`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES ('3', '2', NULL, NULL, 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=1200&auto=format&fit=crop', NULL, '1', '1', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `color_name`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES ('4', '3', NULL, NULL, 'https://images.unsplash.com/photo-1611591475140-4388636a26f6?q=80&w=1200&auto=format&fit=crop', NULL, '1', '1', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `color_name`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES ('5', '4', NULL, NULL, 'https://images.unsplash.com/photo-1630019852942-f89202989a59?q=80&w=1200&auto=format&fit=crop', NULL, '1', '1', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `product_images` (`id`, `product_id`, `product_variant_id`, `color_name`, `image_url`, `alt_text`, `sort_order`, `is_primary`, `created_at`, `updated_at`) VALUES ('6', '5', NULL, NULL, 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=1200&auto=format&fit=crop', NULL, '1', '1', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
 
 -- --------------------------------------------------------
 -- Table structure for `product_variants`
@@ -1033,6 +1323,7 @@ CREATE TABLE `product_variants` (
   `sku` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `size` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
   `color` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `color_code` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `price` decimal(12,2) NOT NULL,
   `mrp` decimal(12,2) NOT NULL,
   `stock` int NOT NULL DEFAULT '0',
@@ -1047,24 +1338,15 @@ CREATE TABLE `product_variants` (
   KEY `product_variants_sku_index` (`sku`),
   KEY `product_variants_status_index` (`status`),
   CONSTRAINT `product_variants_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `product_variants` (15 rows)
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (1, 1, 'FMR-LEH-001-RED-S', 'S', 'Crimson Red', 14999.00, 19999.00, 15, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (2, 1, 'FMR-LEH-001-RED-M', 'M', 'Crimson Red', 14999.00, 19999.00, 20, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (3, 1, 'FMR-LEH-001-RED-L', 'L', 'Crimson Red', 14999.00, 19999.00, 10, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (4, 1, 'FMR-LEH-001-GLD-M', 'M', 'Royal Gold', 14999.00, 19999.00, 12, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (5, 2, 'FMR-SAR-001-RED-FS', 'Free Size', 'Royal Red', 8999.00, 12999.00, 25, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (6, 2, 'FMR-SAR-001-BLU-FS', 'Free Size', 'Peacock Blue', 8999.00, 12999.00, 15, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (7, 3, 'FMR-SUIT-001-PNK-S', 'S', 'Blush Pink', 6499.00, 8999.00, 18, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (8, 3, 'FMR-SUIT-001-PNK-M', 'M', 'Blush Pink', 6499.00, 8999.00, 22, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (9, 4, 'FMR-CORD-001-BGE-S', 'S', 'Beige', 3499.00, 4999.00, 30, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (10, 4, 'FMR-CORD-001-BGE-M', 'M', 'Beige', 3499.00, 4999.00, 35, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (11, 4, 'FMR-CORD-001-BLK-M', 'M', 'Black', 3499.00, 4999.00, 20, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (12, 5, 'FMR-KUR-001-YEL-S', 'S', 'Mustard Yellow', 2499.00, 3999.00, 25, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (13, 5, 'FMR-KUR-001-YEL-M', 'M', 'Mustard Yellow', 2499.00, 3999.00, 40, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (14, 6, 'FMR-GWN-001-NVY-S', 'S', 'Navy Blue', 11999.00, 15999.00, 12, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES (15, 6, 'FMR-GWN-001-NVY-M', 'M', 'Navy Blue', 11999.00, 15999.00, 15, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
+-- Dumping data for `product_variants`
+INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `color_code`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES ('1', '1', 'ARL-CHK-001-GLD-FS', 'Free Size', 'Royal Gold', NULL, '3499.00', '4999.00', '20', '5', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `color_code`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES ('2', '1', 'ARL-CHK-001-GRN-FS', 'Free Size', 'Emerald Green', NULL, '3499.00', '4999.00', '15', '5', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `color_code`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES ('3', '2', 'ARL-JHM-001-GLD-FS', 'Free Size', 'Gold', NULL, '1599.00', '2299.00', '30', '5', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `color_code`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES ('4', '3', 'ARL-BRC-001-GLD-FS', 'Free Size', 'Warm Gold', NULL, '1899.00', '2499.00', '25', '5', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `color_code`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES ('5', '4', 'ARL-HOP-001-GLD-FS', 'Free Size', 'Classic Gold', NULL, '1299.00', '1799.00', '40', '5', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `size`, `color`, `color_code`, `price`, `mrp`, `stock`, `low_stock_threshold`, `status`, `created_at`, `updated_at`) VALUES ('6', '5', 'ARL-RNG-001-RSG-FS', 'Free Size', 'Rose Gold', NULL, '999.00', '1499.00', '35', '5', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
 
 -- --------------------------------------------------------
 -- Table structure for `products`
@@ -1079,12 +1361,14 @@ CREATE TABLE `products` (
   `sku` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` text COLLATE utf8mb4_unicode_ci,
   `short_description` text COLLATE utf8mb4_unicode_ci,
-  `brand` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Femmeera',
+  `brand` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ARILHA',
   `shipping_type` enum('READY_TO_SHIP','MADE_TO_ORDER','EXPRESS') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'READY_TO_SHIP',
   `delivery_estimate` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '3-7 working days',
   `return_policy_type` enum('RETURNABLE','NON_RETURNABLE','EXCHANGE_ONLY') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'RETURNABLE',
   `gender` enum('WOMEN','MEN','UNISEX') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'WOMEN',
   `status` enum('ACTIVE','INACTIVE','ARCHIVED') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',
+  `rating` decimal(3,2) NOT NULL DEFAULT '0.00',
+  `review_count` int unsigned NOT NULL DEFAULT '0',
   `is_featured` tinyint(1) NOT NULL DEFAULT '0',
   `is_new` tinyint(1) NOT NULL DEFAULT '0',
   `is_best_seller` tinyint(1) NOT NULL DEFAULT '0',
@@ -1092,6 +1376,7 @@ CREATE TABLE `products` (
   `seo_description` text COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `products_slug_unique` (`slug`),
   UNIQUE KEY `products_sku_unique` (`sku`),
@@ -1102,15 +1387,14 @@ CREATE TABLE `products` (
   KEY `products_created_at_index` (`created_at`),
   CONSTRAINT `products_category_id_foreign` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `products_collection_id_foreign` FOREIGN KEY (`collection_id`) REFERENCES `collections` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `products` (6 rows)
-INSERT INTO `products` (`id`, `category_id`, `collection_id`, `name`, `slug`, `sku`, `description`, `short_description`, `brand`, `shipping_type`, `delivery_estimate`, `return_policy_type`, `gender`, `status`, `is_featured`, `is_new`, `is_best_seller`, `seo_title`, `seo_description`, `created_at`, `updated_at`) VALUES (1, 2, NULL, 'Embroidered Silk Lehenga Set', 'embroidered-silk-lehenga-set', 'FMR-TRAD-LEH-001', 'Immerse yourself in royal splendor with our Embroidered Silk Lehenga Set. Featuring intricate zari craftsmanship, hand-embroidered borders, and a soft net dupatta, this ensemble promises timeless elegance.', 'Royal hand-embroidered silk lehenga set with zari dupatta.', 'Femmeera', 'READY_TO_SHIP', '3-7 working days', 'RETURNABLE', 'WOMEN', 'ACTIVE', 1, 1, 1, NULL, NULL, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `products` (`id`, `category_id`, `collection_id`, `name`, `slug`, `sku`, `description`, `short_description`, `brand`, `shipping_type`, `delivery_estimate`, `return_policy_type`, `gender`, `status`, `is_featured`, `is_new`, `is_best_seller`, `seo_title`, `seo_description`, `created_at`, `updated_at`) VALUES (2, 2, NULL, 'Handcrafted Banarasi Silk Saree', 'handcrafted-banarasi-silk-saree', 'FMR-TRAD-SAR-001', 'Crafted from pure silk, this royal Banarasi saree features rich gold zari motifs, intricate pallu borders, and comes with an unstitched matching blouse piece.', 'Handwoven Banarasi silk saree with gold zari weaving.', 'Femmeera', 'READY_TO_SHIP', '3-7 working days', 'RETURNABLE', 'WOMEN', 'ACTIVE', 1, 1, 1, NULL, NULL, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `products` (`id`, `category_id`, `collection_id`, `name`, `slug`, `sku`, `description`, `short_description`, `brand`, `shipping_type`, `delivery_estimate`, `return_policy_type`, `gender`, `status`, `is_featured`, `is_new`, `is_best_seller`, `seo_title`, `seo_description`, `created_at`, `updated_at`) VALUES (3, 2, NULL, 'Designer Anarkali Suit Set', 'designer-anarkali-suit-set', 'FMR-TRAD-SUIT-001', 'Add grace to your festive wardrobe with our Designer Anarkali Suit Set. Tailored in high-grade georgette with zari highlights and matching trousers.', 'Flowy printed georgette Anarkali suit with embroidered neckline.', 'Femmeera', 'READY_TO_SHIP', '3-7 working days', 'RETURNABLE', 'WOMEN', 'ACTIVE', 1, 1, 0, NULL, NULL, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `products` (`id`, `category_id`, `collection_id`, `name`, `slug`, `sku`, `description`, `short_description`, `brand`, `shipping_type`, `delivery_estimate`, `return_policy_type`, `gender`, `status`, `is_featured`, `is_new`, `is_best_seller`, `seo_title`, `seo_description`, `created_at`, `updated_at`) VALUES (4, 3, NULL, 'Linen Blend Premium Co-ord Set', 'linen-co-ord-set', 'FMR-WEST-CORD-001', 'Upgrade your wardrobe with this relaxed linen blend co-ord set. Ideal for office casuals, weekend brunches, or travel.', 'Chic 2-piece linen shirt and trouser co-ord set.', 'Femmeera', 'READY_TO_SHIP', '3-7 working days', 'RETURNABLE', 'WOMEN', 'ACTIVE', 1, 1, 1, NULL, NULL, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `products` (`id`, `category_id`, `collection_id`, `name`, `slug`, `sku`, `description`, `short_description`, `brand`, `shipping_type`, `delivery_estimate`, `return_policy_type`, `gender`, `status`, `is_featured`, `is_new`, `is_best_seller`, `seo_title`, `seo_description`, `created_at`, `updated_at`) VALUES (5, 2, NULL, 'Chanderi Printed Kurti Set', 'chanderi-printed-kurti-set', 'FMR-TRAD-KUR-001', 'Soft, comfortable, and elegant. Features subtle foil print and intricate neck embroidery for daily ethnic wear.', 'Lightweight Chanderi cotton kurti with dupatta.', 'Femmeera', 'READY_TO_SHIP', '3-7 working days', 'RETURNABLE', 'WOMEN', 'ACTIVE', 1, 1, 0, NULL, NULL, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `products` (`id`, `category_id`, `collection_id`, `name`, `slug`, `sku`, `description`, `short_description`, `brand`, `shipping_type`, `delivery_estimate`, `return_policy_type`, `gender`, `status`, `is_featured`, `is_new`, `is_best_seller`, `seo_title`, `seo_description`, `created_at`, `updated_at`) VALUES (6, 3, NULL, 'Indo-Western Velvet Evening Gown', 'indo-western-velvet-glen-gown', 'FMR-WEST-GWN-001', 'Make a high-fashion statement at reception dinners and gala events with this luxurious dark velvet gown.', 'Rich velvet evening gown with zardozi belt detail.', 'Femmeera', 'READY_TO_SHIP', '3-7 working days', 'RETURNABLE', 'WOMEN', 'ACTIVE', 1, 1, 1, NULL, NULL, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
+-- Dumping data for `products`
+INSERT INTO `products` (`id`, `category_id`, `collection_id`, `name`, `slug`, `sku`, `description`, `short_description`, `brand`, `shipping_type`, `delivery_estimate`, `return_policy_type`, `gender`, `status`, `rating`, `review_count`, `is_featured`, `is_new`, `is_best_seller`, `seo_title`, `seo_description`, `created_at`, `updated_at`, `deleted_at`) VALUES ('1', '2', NULL, 'Royal Kundan Choker Necklace Set', 'royal-kundan-choker-necklace-set', 'ARL-KUN-CHK-001', 'Immerse yourself in royal elegance with our Royal Kundan Choker Necklace Set. Featuring intricate Kundan stone setting, pearl drops, and an adjustable drawstring closure for weddings and festive occasions.', 'Handcrafted Kundan choker set with matching drop earrings.', 'ARILHA', 'READY_TO_SHIP', '3-7 working days', 'RETURNABLE', 'WOMEN', 'ACTIVE', '0.00', '0', '1', '1', '1', NULL, NULL, '2026-09-23 09:51:27', '2026-09-23 09:51:27', NULL);
+INSERT INTO `products` (`id`, `category_id`, `collection_id`, `name`, `slug`, `sku`, `description`, `short_description`, `brand`, `shipping_type`, `delivery_estimate`, `return_policy_type`, `gender`, `status`, `rating`, `review_count`, `is_featured`, `is_new`, `is_best_seller`, `seo_title`, `seo_description`, `created_at`, `updated_at`, `deleted_at`) VALUES ('2', '2', NULL, 'Handcrafted Pearl Drop Jhumkas', 'handcrafted-pearl-drop-jhumkas', 'ARL-JHM-PRL-001', 'Add timeless grace to your outfit with our Handcrafted Pearl Drop Jhumkas. Designed with intricate gold-plating and lightweight pearl droplets for day-long comfort.', 'Traditional gold-plated jhumkas with pearl drop fringe.', 'ARILHA', 'READY_TO_SHIP', '3-7 working days', 'RETURNABLE', 'WOMEN', 'ACTIVE', '0.00', '0', '1', '1', '1', NULL, NULL, '2026-09-23 09:51:27', '2026-09-23 09:51:27', NULL);
+INSERT INTO `products` (`id`, `category_id`, `collection_id`, `name`, `slug`, `sku`, `description`, `short_description`, `brand`, `shipping_type`, `delivery_estimate`, `return_policy_type`, `gender`, `status`, `rating`, `review_count`, `is_featured`, `is_new`, `is_best_seller`, `seo_title`, `seo_description`, `created_at`, `updated_at`, `deleted_at`) VALUES ('3', '3', NULL, 'Floral Gold-Plated Cuff Bracelet', 'floral-gold-plated-cuff-bracelet', 'ARL-BRC-FLR-001', 'Elevate your daily wristwear with our Floral Gold-Plated Cuff Bracelet. Features delicate embossed floral motifs and a comfortable slip-on fit.', 'Textured floral gold-plated cuff bracelet for everyday elegance.', 'ARILHA', 'READY_TO_SHIP', '3-7 working days', 'RETURNABLE', 'WOMEN', 'ACTIVE', '0.00', '0', '1', '1', '1', NULL, NULL, '2026-09-23 09:51:27', '2026-09-23 09:51:27', NULL);
+INSERT INTO `products` (`id`, `category_id`, `collection_id`, `name`, `slug`, `sku`, `description`, `short_description`, `brand`, `shipping_type`, `delivery_estimate`, `return_policy_type`, `gender`, `status`, `rating`, `review_count`, `is_featured`, `is_new`, `is_best_seller`, `seo_title`, `seo_description`, `created_at`, `updated_at`, `deleted_at`) VALUES ('4', '3', NULL, 'Anti-Tarnish Daily Gold Hoops', 'anti-tarnish-daily-gold-hoops', 'ARL-EAR-HOP-001', 'Designed for everyday wear, these lightweight anti-tarnish gold hoops resist water splashes and skin oil discoloration. Perfect for work, brunch, and workouts.', 'Sleek anti-tarnish gold-plated daily hoop earrings.', 'ARILHA', 'READY_TO_SHIP', '3-7 working days', 'RETURNABLE', 'WOMEN', 'ACTIVE', '0.00', '0', '1', '1', '1', NULL, NULL, '2026-09-23 09:51:27', '2026-09-23 09:51:27', NULL);
+INSERT INTO `products` (`id`, `category_id`, `collection_id`, `name`, `slug`, `sku`, `description`, `short_description`, `brand`, `shipping_type`, `delivery_estimate`, `return_policy_type`, `gender`, `status`, `rating`, `review_count`, `is_featured`, `is_new`, `is_best_seller`, `seo_title`, `seo_description`, `created_at`, `updated_at`, `deleted_at`) VALUES ('5', '3', NULL, 'Rose Gold Stacking Ring Set', 'rose-gold-stacking-ring-set', 'ARL-RNG-STK-001', 'Style them together or separately. This 3-piece Rose Gold Stacking Ring Set features textured bands and solitaire crystal studs.', '3-piece stackable rose gold rings with crystal accents.', 'ARILHA', 'READY_TO_SHIP', '3-7 working days', 'RETURNABLE', 'WOMEN', 'ACTIVE', '0.00', '0', '1', '1', '0', NULL, NULL, '2026-09-23 09:51:27', '2026-09-23 09:51:27', NULL);
 
 -- --------------------------------------------------------
 -- Table structure for `refunds`
@@ -1135,7 +1419,7 @@ CREATE TABLE `refunds` (
   CONSTRAINT `refunds_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `refunds_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `refunds_payment_id_foreign` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for `review_images`
@@ -1158,11 +1442,14 @@ DROP TABLE IF EXISTS `reviews`;
 CREATE TABLE `reviews` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `product_id` bigint unsigned NOT NULL,
-  `user_id` bigint unsigned NOT NULL,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `order_id` bigint unsigned DEFAULT NULL,
   `order_item_id` bigint unsigned DEFAULT NULL,
+  `reviewer_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `rating` tinyint unsigned NOT NULL,
   `title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `comment` text COLLATE utf8mb4_unicode_ci,
+  `is_verified_purchase` tinyint(1) NOT NULL DEFAULT '0',
   `status` enum('PENDING','APPROVED','REJECTED') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -1170,6 +1457,8 @@ CREATE TABLE `reviews` (
   KEY `reviews_order_item_id_foreign` (`order_item_id`),
   KEY `reviews_product_id_index` (`product_id`),
   KEY `reviews_user_id_index` (`user_id`),
+  KEY `reviews_order_id_foreign` (`order_id`),
+  CONSTRAINT `reviews_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL,
   CONSTRAINT `reviews_order_item_id_foreign` FOREIGN KEY (`order_item_id`) REFERENCES `order_items` (`id`) ON DELETE SET NULL,
   CONSTRAINT `reviews_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   CONSTRAINT `reviews_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -1188,8 +1477,8 @@ CREATE TABLE `role_user` (
   CONSTRAINT `role_user_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `role_user` (1 rows)
-INSERT INTO `role_user` (`role_id`, `user_id`) VALUES (1, 1);
+-- Dumping data for `role_user`
+INSERT INTO `role_user` (`role_id`, `user_id`) VALUES ('1', '1');
 
 -- --------------------------------------------------------
 -- Table structure for `roles`
@@ -1206,13 +1495,13 @@ CREATE TABLE `roles` (
   UNIQUE KEY `roles_name_unique` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `roles` (6 rows)
-INSERT INTO `roles` (`id`, `name`, `display_name`, `description`, `created_at`, `updated_at`) VALUES (1, 'SUPER_ADMIN', 'Super Administrator', 'Full unrestricted system access', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `roles` (`id`, `name`, `display_name`, `description`, `created_at`, `updated_at`) VALUES (2, 'ADMIN', 'Administrator', 'General store administration', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `roles` (`id`, `name`, `display_name`, `description`, `created_at`, `updated_at`) VALUES (3, 'PRODUCT_MANAGER', 'Product Manager', 'Catalog, category, and collection management', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `roles` (`id`, `name`, `display_name`, `description`, `created_at`, `updated_at`) VALUES (4, 'INVENTORY_MANAGER', 'Inventory Manager', 'Stock balance adjustments and warehouse tracking', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `roles` (`id`, `name`, `display_name`, `description`, `created_at`, `updated_at`) VALUES (5, 'ORDER_MANAGER', 'Order Manager', 'Order fulfillment and shipping updates', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
-INSERT INTO `roles` (`id`, `name`, `display_name`, `description`, `created_at`, `updated_at`) VALUES (6, 'MARKETING_MANAGER', 'Marketing Manager', 'Coupons, offers, hero banners, and popups', '2026-08-25 15:41:38', '2026-08-25 15:41:38');
+-- Dumping data for `roles`
+INSERT INTO `roles` (`id`, `name`, `display_name`, `description`, `created_at`, `updated_at`) VALUES ('1', 'SUPER_ADMIN', 'Super Administrator', 'Full unrestricted system access', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `roles` (`id`, `name`, `display_name`, `description`, `created_at`, `updated_at`) VALUES ('2', 'ADMIN', 'Administrator', 'General store administration', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `roles` (`id`, `name`, `display_name`, `description`, `created_at`, `updated_at`) VALUES ('3', 'PRODUCT_MANAGER', 'Product Manager', 'Catalog, category, and collection management', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `roles` (`id`, `name`, `display_name`, `description`, `created_at`, `updated_at`) VALUES ('4', 'INVENTORY_MANAGER', 'Inventory Manager', 'Stock balance adjustments and warehouse tracking', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `roles` (`id`, `name`, `display_name`, `description`, `created_at`, `updated_at`) VALUES ('5', 'ORDER_MANAGER', 'Order Manager', 'Order fulfillment and shipping updates', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
+INSERT INTO `roles` (`id`, `name`, `display_name`, `description`, `created_at`, `updated_at`) VALUES ('6', 'MARKETING_MANAGER', 'Marketing Manager', 'Coupons, offers, hero banners, and popups', '2026-09-23 09:51:26', '2026-09-23 09:51:26');
 
 -- --------------------------------------------------------
 -- Table structure for `sessions`
@@ -1243,15 +1532,15 @@ CREATE TABLE `settings` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `settings_key_name_unique` (`key_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `settings` (6 rows)
-INSERT INTO `settings` (`id`, `group_name`, `key_name`, `value_content`, `created_at`, `updated_at`) VALUES (1, 'general', 'store_name', 'Femmeera', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `settings` (`id`, `group_name`, `key_name`, `value_content`, `created_at`, `updated_at`) VALUES (2, 'general', 'store_currency', 'INR', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `settings` (`id`, `group_name`, `key_name`, `value_content`, `created_at`, `updated_at`) VALUES (3, 'general', 'currency_symbol', '₹', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `settings` (`id`, `group_name`, `key_name`, `value_content`, `created_at`, `updated_at`) VALUES (4, 'shipping', 'free_shipping_threshold', 1999, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `settings` (`id`, `group_name`, `key_name`, `value_content`, `created_at`, `updated_at`) VALUES (5, 'seo', 'default_meta_title', 'Femmeera | Elegant Women\'s Traditional & Western Clothing', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `settings` (`id`, `group_name`, `key_name`, `value_content`, `created_at`, `updated_at`) VALUES (6, 'seo', 'default_meta_description', 'Shop premium sarees, kurtis, dresses, tops, and western trends at Femmeera.', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
+-- Dumping data for `settings`
+INSERT INTO `settings` (`id`, `group_name`, `key_name`, `value_content`, `created_at`, `updated_at`) VALUES ('1', 'general', 'store_name', 'ARILHA', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `settings` (`id`, `group_name`, `key_name`, `value_content`, `created_at`, `updated_at`) VALUES ('2', 'general', 'store_currency', 'INR', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `settings` (`id`, `group_name`, `key_name`, `value_content`, `created_at`, `updated_at`) VALUES ('3', 'general', 'currency_symbol', '₹', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `settings` (`id`, `group_name`, `key_name`, `value_content`, `created_at`, `updated_at`) VALUES ('4', 'shipping', 'free_shipping_threshold', '1499', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `settings` (`id`, `group_name`, `key_name`, `value_content`, `created_at`, `updated_at`) VALUES ('5', 'seo', 'default_meta_title', 'ARILHA — Modern Indian Jewellery | Anti-Tarnish & Everyday Jewellery', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `settings` (`id`, `group_name`, `key_name`, `value_content`, `created_at`, `updated_at`) VALUES ('6', 'seo', 'default_meta_description', 'Discover ARILHA by Irsa Khan — modern Indian jewellery designed for everyday wear, celebrations and every version of you.', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
 
 -- --------------------------------------------------------
 -- Table structure for `shipping_methods`
@@ -1270,9 +1559,9 @@ CREATE TABLE `shipping_methods` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `shipping_methods` (2 rows)
-INSERT INTO `shipping_methods` (`id`, `name`, `description`, `price`, `estimated_min_days`, `estimated_max_days`, `status`, `created_at`, `updated_at`) VALUES (1, 'Standard Delivery', 'Reliable doorstep delivery across India in 3–5 business days.', 49.00, 3, 5, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
-INSERT INTO `shipping_methods` (`id`, `name`, `description`, `price`, `estimated_min_days`, `estimated_max_days`, `status`, `created_at`, `updated_at`) VALUES (2, 'Express Delivery', 'Priority express delivery in 1–2 business days.', 99.00, 1, 2, 'ACTIVE', '2026-08-25 15:41:39', '2026-08-25 15:41:39');
+-- Dumping data for `shipping_methods`
+INSERT INTO `shipping_methods` (`id`, `name`, `description`, `price`, `estimated_min_days`, `estimated_max_days`, `status`, `created_at`, `updated_at`) VALUES ('1', 'Standard Delivery', 'Reliable doorstep delivery across India in 3–5 business days.', '49.00', '3', '5', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `shipping_methods` (`id`, `name`, `description`, `price`, `estimated_min_days`, `estimated_max_days`, `status`, `created_at`, `updated_at`) VALUES ('2', 'Express Delivery', 'Priority express delivery in 1–2 business days.', '99.00', '1', '2', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
 
 -- --------------------------------------------------------
 -- Table structure for `shipping_rules`
@@ -1289,7 +1578,7 @@ CREATE TABLE `shipping_rules` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for `tax_rules`
@@ -1306,8 +1595,8 @@ CREATE TABLE `tax_rules` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `tax_rules` (1 rows)
-INSERT INTO `tax_rules` (`id`, `name`, `rate_percentage`, `is_inclusive`, `status`, `created_at`, `updated_at`) VALUES (1, 'GST Apparel 5%', 5.00, 0, 'ACTIVE', '2026-08-25 15:41:40', '2026-08-25 15:41:40');
+-- Dumping data for `tax_rules`
+INSERT INTO `tax_rules` (`id`, `name`, `rate_percentage`, `is_inclusive`, `status`, `created_at`, `updated_at`) VALUES ('1', 'GST Jewellery 3%', '3.00', '0', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
 
 -- --------------------------------------------------------
 -- Table structure for `users`
@@ -1333,10 +1622,31 @@ CREATE TABLE `users` (
   UNIQUE KEY `users_phone_unique` (`phone`),
   UNIQUE KEY `users_google_id_unique` (`google_id`),
   KEY `users_user_type_status_index` (`user_type`,`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `users` (1 rows)
-INSERT INTO `users` (`id`, `name`, `email`, `google_id`, `provider`, `avatar`, `phone`, `password`, `user_type`, `status`, `email_verified_at`, `remember_token`, `created_at`, `updated_at`) VALUES (1, 'Super Administrator', 'admin@femmeera.com', NULL, 'local', NULL, 9999999999, '$2y$04$AsBnwSU05JFwpVenlmgIEuXErdHTj1ufWnIIjf5bpAh0ipvlYJ6DO', 'ADMIN', 'ACTIVE', '2026-08-25 15:41:39', NULL, '2026-08-25 15:41:39', '2026-08-25 15:41:39');
+-- Dumping data for `users`
+INSERT INTO `users` (`id`, `name`, `email`, `google_id`, `provider`, `avatar`, `phone`, `password`, `user_type`, `status`, `email_verified_at`, `remember_token`, `created_at`, `updated_at`) VALUES ('1', 'ARILHA Administrator', 'admin@arilha.com', NULL, 'local', NULL, '9999999999', '$2y$12$AjIv.eODnOpHfUHz/s3Krek/QO5BSzoFsWp5Fb/p/Gjho3X5npxKe', 'ADMIN', 'ACTIVE', '2026-09-23 09:51:27', NULL, '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+
+-- --------------------------------------------------------
+-- Table structure for `visitor_sessions`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `visitor_sessions`;
+CREATE TABLE `visitor_sessions` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `session_id` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_agent` text COLLATE utf8mb4_unicode_ci,
+  `first_seen_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_seen_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` enum('ACTIVE','LEFT') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `visitor_sessions_session_id_unique` (`session_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for `visitor_sessions`
+INSERT INTO `visitor_sessions` (`id`, `session_id`, `ip_address`, `user_agent`, `first_seen_at`, `last_seen_at`, `status`, `created_at`, `updated_at`) VALUES ('1', 'vs_5uict7bzh_1790084112956', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-23 09:51:18', '2026-09-23 09:59:25', 'ACTIVE', '2026-09-23 09:51:18', '2026-09-23 09:59:25');
 
 -- --------------------------------------------------------
 -- Table structure for `watch_and_shop_videos`
@@ -1354,13 +1664,12 @@ CREATE TABLE `watch_and_shop_videos` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `watch_and_shop_videos` (4 rows)
-INSERT INTO `watch_and_shop_videos` (`id`, `title`, `video_url`, `poster_url`, `product_url`, `button_text`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES (1, 'Royal Bridal Silk Lehenga Look', 'https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-a-red-dress-41334-large.mp4', 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=600&auto=format&fit=crop', '/product/embroidered-silk-lehenga-set', 'View Product', 1, 'ACTIVE', '2026-08-25 15:41:40', '2026-08-25 15:41:40');
-INSERT INTO `watch_and_shop_videos` (`id`, `title`, `video_url`, `poster_url`, `product_url`, `button_text`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES (2, 'Handcrafted Banarasi Saree Elegance', 'https://assets.mixkit.co/videos/preview/mixkit-woman-posing-for-the-camera-in-a-studio-41337-large.mp4', 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop', '/product/handcrafted-banarasi-silk-saree', 'View Product', 2, 'ACTIVE', '2026-08-25 15:41:40', '2026-08-25 15:41:40');
-INSERT INTO `watch_and_shop_videos` (`id`, `title`, `video_url`, `poster_url`, `product_url`, `button_text`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES (3, 'Summer Linen Co-ord Outfit', 'https://assets.mixkit.co/videos/preview/mixkit-young-woman-posing-in-a-flower-field-41335-large.mp4', 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop', '/product/linen-co-ord-set', 'View Product', 3, 'ACTIVE', '2026-08-25 15:41:40', '2026-08-25 15:41:40');
-INSERT INTO `watch_and_shop_videos` (`id`, `title`, `video_url`, `poster_url`, `product_url`, `button_text`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES (4, 'Designer Anarkali Suit Motion', 'https://assets.mixkit.co/videos/preview/mixkit-model-walking-in-a-fashion-show-41333-large.mp4', 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=600&auto=format&fit=crop', '/product/designer-anarkali-suit-set', 'View Product', 4, 'ACTIVE', '2026-08-25 15:41:40', '2026-08-25 15:41:40');
+-- Dumping data for `watch_and_shop_videos`
+INSERT INTO `watch_and_shop_videos` (`id`, `title`, `video_url`, `poster_url`, `product_url`, `button_text`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES ('1', 'Royal Kundan Choker Styling', 'https://assets.mixkit.co/videos/preview/mixkit-woman-posing-for-the-camera-in-a-studio-41337-large.mp4', 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=600&auto=format&fit=crop', '/product/royal-kundan-choker-necklace-set', 'View Product', '1', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `watch_and_shop_videos` (`id`, `title`, `video_url`, `poster_url`, `product_url`, `button_text`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES ('2', 'Handcrafted Pearl Drop Jhumkas', 'https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-a-red-dress-41334-large.mp4', 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=600&auto=format&fit=crop', '/product/handcrafted-pearl-drop-jhumkas', 'View Product', '2', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
+INSERT INTO `watch_and_shop_videos` (`id`, `title`, `video_url`, `poster_url`, `product_url`, `button_text`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES ('3', 'Anti-Tarnish Everyday Hoops', 'https://assets.mixkit.co/videos/preview/mixkit-young-woman-posing-in-a-flower-field-41335-large.mp4', 'https://images.unsplash.com/photo-1630019852942-f89202989a59?q=80&w=600&auto=format&fit=crop', '/product/anti-tarnish-daily-gold-hoops', 'View Product', '3', 'ACTIVE', '2026-09-23 09:51:27', '2026-09-23 09:51:27');
 
 -- --------------------------------------------------------
 -- Table structure for `wishlist_items`

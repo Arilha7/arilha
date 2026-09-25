@@ -22,6 +22,7 @@ class OrderItem extends Model
         'quantity',
         'unit_price',
         'discount_amount',
+        'is_free_gift',
         'total_amount',
         'created_at',
     ];

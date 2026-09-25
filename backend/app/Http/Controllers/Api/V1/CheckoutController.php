@@ -21,7 +21,7 @@ class CheckoutController extends Controller
 
     /**
      * POST /api/v1/checkout/summary
-     * Recalculates real-time checkout summary upon address/shipping/coupon changes (Spec Section 35).
+     * Recalculates real-time checkout summary upon address/shipping/coupon/payment-method changes.
      */
     public function summary(Request $request): JsonResponse
     {
@@ -30,8 +30,17 @@ class CheckoutController extends Controller
 
         $couponCode = $request->input('coupon_code');
         $shippingMethodId = $request->input('shipping_method_id') ? (int)$request->input('shipping_method_id') : null;
+        $paymentMethod = $request->input('payment_method', 'UPI');
+        $freeGiftProductId = $request->input('free_gift_product_id') ? (int)$request->input('free_gift_product_id') : null;
 
-        $payload = $this->cartService->getCartPayload($cart, $couponCode, $shippingMethodId, $user);
+        $payload = $this->cartService->getCartPayload(
+            $cart,
+            $couponCode,
+            $shippingMethodId,
+            $user,
+            $paymentMethod,
+            $freeGiftProductId
+        );
 
         return response()->json([
             'success' => true,
@@ -42,7 +51,7 @@ class CheckoutController extends Controller
 
     /**
      * POST /api/v1/checkout/validate
-     * Validates cart items, address, stock availability prior to placing order (Spec Section 31).
+     * Validates cart items, address, stock availability prior to placing order.
      */
     public function validateCheckout(Request $request): JsonResponse
     {
@@ -51,8 +60,17 @@ class CheckoutController extends Controller
 
         $couponCode = $request->input('coupon_code');
         $shippingMethodId = $request->input('shipping_method_id') ? (int)$request->input('shipping_method_id') : null;
+        $paymentMethod = $request->input('payment_method', 'UPI');
+        $freeGiftProductId = $request->input('free_gift_product_id') ? (int)$request->input('free_gift_product_id') : null;
 
-        $payload = $this->cartService->getCartPayload($cart, $couponCode, $shippingMethodId, $user);
+        $payload = $this->cartService->getCartPayload(
+            $cart,
+            $couponCode,
+            $shippingMethodId,
+            $user,
+            $paymentMethod,
+            $freeGiftProductId
+        );
 
         if (empty($payload['items'])) {
             return response()->json([
@@ -82,8 +100,8 @@ class CheckoutController extends Controller
     }
 
     /**
-     * POST /api/v1/checkout/create-order (Spec Section 31 & 34)
-     * Creates order transactionally and sets payment_status = PENDING.
+     * POST /api/v1/checkout/create-order
+     * Creates order transactionally and sets payment_status = PENDING (Supports Guest & Logged In Users).
      */
     public function createOrder(Request $request): JsonResponse
     {
@@ -99,6 +117,8 @@ class CheckoutController extends Controller
             'shipping_address.pincode' => 'required|string|regex:/^[1-9][0-9]{5}$/',
             'shipping_method_id' => 'nullable|integer',
             'coupon_code' => 'nullable|string',
+            'free_gift_product_id' => 'nullable|integer',
+            'payment_method' => 'nullable|string',
         ]);
 
         $payload = [
@@ -116,9 +136,11 @@ class CheckoutController extends Controller
             'shipping_method_id' => $request->input('shipping_method_id'),
             'coupon_code' => $request->input('coupon_code'),
             'payment_method' => $request->input('payment_method', 'COD'),
+            'free_gift_product_id' => $request->input('free_gift_product_id'),
         ];
 
-        $order = $this->cartCheckoutService->checkout($user, $payload);
+        $guestSessionId = $request->header('X-Guest-Session-ID');
+        $order = $this->cartCheckoutService->checkout($user, $payload, $guestSessionId);
 
         return response()->json([
             'success' => true,

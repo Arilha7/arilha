@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cmsService, PublicHeroBanner } from '@/services/cmsService';
 
 interface Slide {
@@ -23,15 +21,15 @@ const fallbackSlides: Slide[] = [
     id: 1,
     image: '/images/hero1_image.png',
     mobileImage: '/images/hero1_image.png',
-    buttonText: 'SHOP TRADITIONAL',
-    link: '/women/traditional-wear',
+    buttonText: 'SHOP FESTIVE',
+    link: '/collections/diwali',
   },
   {
     id: 2,
     image: '/images/hero2_image.png',
     mobileImage: '/images/hero2_image.png',
-    buttonText: 'SHOP WESTERN',
-    link: '/women/western-wear',
+    buttonText: 'SHOP EVERYDAY',
+    link: '/collections/earrings',
   },
 ];
 
@@ -111,15 +109,14 @@ export const HeroSlider: React.FC = () => {
       onTouchEnd={handleTouchEnd}
     >
       {/* 100% Full Width Hero Slider Stage */}
-      <div className="relative w-full h-[520px] sm:h-[650px] lg:h-[720px] cursor-pointer" onClick={() => router.push(slide.link)}>
+      <div className="relative w-full h-[320px] sm:h-[450px] lg:h-[340px] cursor-pointer" onClick={() => router.push(slide.link)}>
         {slides.map((s, idx) => {
           const isActive = idx === currentSlide;
           return (
             <div
               key={s.id}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-              }`}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                }`}
             >
               {/* Desktop Image */}
               <div className="hidden sm:block absolute inset-0">
@@ -144,7 +141,7 @@ export const HeroSlider: React.FC = () => {
               </div>
 
               {/* Overlay Content */}
-              {(s.title || s.tag || s.buttonText) && (
+              {(s.title || s.tag || s.description) && (
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-8 sm:p-16 lg:p-24 text-white">
                   <div className="max-w-7xl mx-auto w-full space-y-4">
                     {s.tag && (
@@ -164,16 +161,6 @@ export const HeroSlider: React.FC = () => {
                         {s.description}
                       </p>
                     )}
-
-                    <div className="pt-4" onClick={(e) => e.stopPropagation()}>
-                      <Link
-                        href={s.link}
-                        className="inline-flex items-center space-x-3 px-8 py-3.5 bg-black/20 hover:bg-black/40 border border-[#c5a059] backdrop-blur-md text-white font-sans text-xs sm:text-sm font-bold uppercase tracking-[0.2em] rounded-2xl shadow-lg transition-all hover:scale-105"
-                      >
-                        <span>{s.buttonText}</span>
-                        <ArrowRight className="w-4 h-4 text-white" />
-                      </Link>
-                    </div>
                   </div>
                 </div>
               )}
@@ -194,9 +181,8 @@ export const HeroSlider: React.FC = () => {
                 e.stopPropagation();
                 setCurrentSlide(idx);
               }}
-              className={`h-2.5 rounded-full transition-all ${
-                idx === currentSlide ? 'w-8 bg-[#B38548]' : 'w-2.5 bg-white/60 hover:bg-white'
-              }`}
+              className={`h-2.5 rounded-full transition-all ${idx === currentSlide ? 'w-8 bg-[#B38548]' : 'w-2.5 bg-white/60 hover:bg-white'
+                }`}
               aria-label={`Go to slide ${idx + 1}`}
             />
           ))}

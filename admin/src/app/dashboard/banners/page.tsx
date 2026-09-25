@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { cmsService, HeroBanner } from '@/services/cmsService';
 import { mediaService } from '@/services/mediaService';
+import { collectionService, Collection } from '@/services/collectionService';
 
 export default function HeroBannersAdminPage() {
   const [banners, setBanners] = useState<HeroBanner[]>([]);
+  const [dbCollections, setDbCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<HeroBanner | null>(null);
@@ -20,41 +22,52 @@ export default function HeroBannersAdminPage() {
     subtitle: '',
     image_url: '',
     mobile_image_url: '',
-    button_text: 'SHOP TRADITIONAL',
-    button_url: '/women/traditional-wear',
+    button_text: 'SHOP NOW',
+    button_url: '/collections/diwali',
     sort_order: 1,
     status: 'ACTIVE',
   });
 
   const [promoForm, setPromoForm] = useState({
     promo_banner_image: '/images/unlock_world_fashion_banner.jpg',
-    promo_banner_url: '/women/western-wear',
+    promo_banner_url: '/category/everyday-jewellery',
     promo_banner_status: 'ACTIVE',
     promo_banner_fit: 'cover',
   });
 
+  const [watchForm, setWatchForm] = useState({
+    watch_banner_title: 'EXQUISITE WATCHES & TIMEPIECES',
+    watch_banner_subtitle: 'Waterproof, Anti-Tarnish Precision Engineering for Modern Style.',
+    watch_banner_image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1600&auto=format&fit=crop',
+    watch_banner_url: '/category/watches',
+    watch_banner_status: 'ACTIVE',
+  });
+
   // Shop By Category State
   const [shopCategories, setShopCategories] = useState<any[]>([
-    { name: 'SAREES', subtitle: 'Grace in every drape', image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=600&auto=format&fit=crop', slug: 'traditional-wear' },
-    { name: 'SUITS', subtitle: 'Elegance redefined', image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=600&auto=format&fit=crop', slug: 'traditional-wear' },
-    { name: 'LEHENGAS', subtitle: 'Royal celebration wear', image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop', slug: 'traditional-wear' },
-    { name: 'KURTIS', subtitle: 'Everyday traditional comfort', image: 'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?q=80&w=600&auto=format&fit=crop', slug: 'traditional-wear' },
-    { name: 'WESTERN DRESSES', subtitle: 'Chic modern trends', image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop', slug: 'western-wear' },
-    { name: 'CO-ORD SETS', subtitle: 'Effortless style', image: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=600&auto=format&fit=crop', slug: 'western-wear' },
+    { name: 'CHAINS', subtitle: 'Minimalist & Layered Chains', image: 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?q=80&w=600&auto=format&fit=crop', slug: 'chains' },
+    { name: 'RINGS', subtitle: 'Statement & Stacking Rings', image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=600&auto=format&fit=crop', slug: 'rings' },
+    { name: 'KADAS', subtitle: 'Traditional & Modern Kadas', image: 'https://images.unsplash.com/photo-1611591475140-4388636a26f6?q=80&w=600&auto=format&fit=crop', slug: 'kadas' },
+    { name: 'BRACELETS', subtitle: 'Sleek & Charm Bracelets', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=600&auto=format&fit=crop', slug: 'bracelets' },
+    { name: 'EARRINGS', subtitle: 'Statement & Drop Earrings', image: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?q=80&w=600&auto=format&fit=crop', slug: 'earrings' },
+    { name: 'BANGLES', subtitle: 'Heritage & Designer Bangles', image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=600&auto=format&fit=crop', slug: 'bangles' },
+    { name: 'STUDS', subtitle: 'Minimalist & Daily Wear Studs', image: 'https://images.unsplash.com/photo-1588444839799-eb00f516826a?q=80&w=600&auto=format&fit=crop', slug: 'studs' },
   ]);
 
   // Featured Collections State
   const [featuredCollections, setFeaturedCollections] = useState<any[]>([
-    { title: 'ROYAL TRADITIONAL WEAR', subtitle: 'Handcrafted Sarees, Lehengas & Anarkali Suits', image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop', link: '/women/traditional-wear' },
-    { title: 'CHIC WESTERN TRENDS', subtitle: 'Co-ords, Gowns, Dresses & Partywear', image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop', link: '/women/western-wear' },
-    { title: 'FESTIVE SILKS', subtitle: 'Timeless Silk Sarees for Special Moments', image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop', link: '/women/traditional-wear' },
-    { title: 'ELEGANT EVENINGWEAR', subtitle: 'Statement Gowns & Luxe Cocktail Outfits', image: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=800&auto=format&fit=crop', link: '/women/western-wear' },
+    { title: 'KUNDAN & FESTIVE', subtitle: 'Royal Statement Chokers & Heritage Adornments', image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop', link: '/category/kundan-festive' },
+    { title: 'EVERYDAY JEWELLERY', subtitle: 'Anti-Tarnish 18K Gold Plated Essentials', image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop', link: '/category/everyday-jewellery' },
+    { title: 'LUXURY TIMEPIECES', subtitle: 'Waterproof & Anti-Tarnish Watches', image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop', link: '/category/watches' },
+    { title: 'ALL JEWELLERY', subtitle: 'Complete Handcrafted Luxury Collection', image: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=800&auto=format&fit=crop', link: '/shop' },
   ]);
 
   const [isUploadingDesktop, setIsUploadingDesktop] = useState(false);
   const [isUploadingMobile, setIsUploadingMobile] = useState(false);
   const [isUploadingPromo, setIsUploadingPromo] = useState(false);
+  const [isUploadingWatch, setIsUploadingWatch] = useState(false);
   const [isSavingPromo, setIsSavingPromo] = useState(false);
+  const [isSavingWatch, setIsSavingWatch] = useState(false);
   const [isSavingShopCat, setIsSavingShopCat] = useState(false);
   const [isSavingFeatured, setIsSavingFeatured] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -63,6 +76,11 @@ export default function HeroBannersAdminPage() {
   useEffect(() => {
     loadBanners();
     loadPromoSettings();
+    collectionService.getCollections().then((res) => {
+      if (res.success && res.data) {
+        setDbCollections(res.data);
+      }
+    });
   }, []);
 
   const loadPromoSettings = async () => {
@@ -71,9 +89,17 @@ export default function HeroBannersAdminPage() {
       if (res.success && res.data) {
         setPromoForm({
           promo_banner_image: res.data.promo_banner_image || '/images/unlock_world_fashion_banner.jpg',
-          promo_banner_url: res.data.promo_banner_url || '/women/western-wear',
+          promo_banner_url: res.data.promo_banner_url || '/category/everyday-jewellery',
           promo_banner_status: res.data.promo_banner_status || 'ACTIVE',
           promo_banner_fit: res.data.promo_banner_fit || 'cover',
+        });
+
+        setWatchForm({
+          watch_banner_title: res.data.watch_banner_title || 'EXQUISITE WATCHES & TIMEPIECES',
+          watch_banner_subtitle: res.data.watch_banner_subtitle || 'Waterproof, Anti-Tarnish Precision Engineering for Modern Style.',
+          watch_banner_image: res.data.watch_banner_image || 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1600&auto=format&fit=crop',
+          watch_banner_url: res.data.watch_banner_url || '/category/watches',
+          watch_banner_status: res.data.watch_banner_status || 'ACTIVE',
         });
 
         // Safely decode shop categories whether returned as string or array
@@ -111,6 +137,21 @@ export default function HeroBannersAdminPage() {
       setMessage({ type: 'error', text: err.message || 'Failed to save promo settings' });
     } finally {
       setIsSavingPromo(false);
+    }
+  };
+
+  const handleSaveWatch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingWatch(true);
+    try {
+      const res = await cmsService.updateSettings(watchForm);
+      if (res.success) {
+        setMessage({ type: 'success', text: 'Watches Banner settings saved successfully!' });
+      }
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || 'Failed to save watches banner settings' });
+    } finally {
+      setIsSavingWatch(false);
     }
   };
 
@@ -160,6 +201,23 @@ export default function HeroBannersAdminPage() {
       alert('Promotional image upload failed');
     } finally {
       setIsUploadingPromo(false);
+    }
+  };
+
+  const handleWatchImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingWatch(true);
+    try {
+      const res = await mediaService.uploadImage(file, 'banners');
+      if (res.success && res.data) {
+        setWatchForm((prev) => ({ ...prev, watch_banner_image: res.data!.url }));
+      }
+    } catch (err) {
+      alert('Watches banner image upload failed');
+    } finally {
+      setIsUploadingWatch(false);
     }
   };
 
@@ -356,7 +414,7 @@ export default function HeroBannersAdminPage() {
                   <div className="flex items-center space-x-4">
                     <div className="relative w-28 h-16 bg-neutral-100 rounded-xl overflow-hidden border border-neutral-200 shrink-0">
                       <Image
-                        src={b.image_display_url || b.image_url}
+                        src={b.image_display_url || b.image_url || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop'}
                         alt={b.title || 'Slide'}
                         fill
                         className="object-cover"
@@ -409,7 +467,12 @@ export default function HeroBannersAdminPage() {
               <div key={idx} className="p-4 bg-neutral-50 border border-neutral-200 rounded-2xl space-y-3 relative">
                 <div className="flex items-center space-x-3">
                   <div className="relative w-16 h-16 rounded-full overflow-hidden border border-neutral-300 shrink-0 bg-neutral-200">
-                    <Image src={cat.image} alt={cat.name} fill className="object-cover" />
+                    <Image
+                      src={cat.image || 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?q=80&w=600&auto=format&fit=crop'}
+                      alt={cat.name || 'Category'}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                   <div className="flex-1 space-y-1">
                     <label className="font-bold text-neutral-800 block text-[10px] uppercase">Title</label>
@@ -513,7 +576,7 @@ export default function HeroBannersAdminPage() {
               onClick={() => {
                 setShopCategories([
                   ...shopCategories,
-                  { name: 'NEW CATEGORY', subtitle: 'Collection tagline', image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=600&auto=format&fit=crop', slug: 'traditional-wear', fit: 'cover' },
+                  { name: 'NEW CATEGORY', subtitle: 'Collection tagline', image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=600&auto=format&fit=crop', slug: 'kundan-festive', fit: 'cover' },
                 ]);
               }}
               className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-900 font-bold rounded-xl flex items-center space-x-1.5"
@@ -537,8 +600,8 @@ export default function HeroBannersAdminPage() {
               <div key={idx} className="p-4 bg-neutral-50 border border-neutral-200 rounded-2xl space-y-3 relative flex gap-4">
                 <div className="relative w-28 h-40 bg-neutral-900 rounded-xl overflow-hidden shrink-0 border">
                   <Image
-                    src={col.image}
-                    alt={col.title}
+                    src={col.image || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop'}
+                    alt={col.title || 'Collection'}
                     fill
                     className={
                       col.fit === 'contain'
@@ -655,7 +718,7 @@ export default function HeroBannersAdminPage() {
               onClick={() => {
                 setFeaturedCollections([
                   ...featuredCollections,
-                  { title: 'NEW COLLECTION', subtitle: 'Collection description', image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop', link: '/women/traditional-wear' },
+                  { title: 'NEW COLLECTION', subtitle: 'Collection description', image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop', link: '/category/kundan-festive' },
                 ]);
               }}
               className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-900 font-bold rounded-xl flex items-center space-x-1.5"
@@ -736,7 +799,7 @@ export default function HeroBannersAdminPage() {
                   type="text"
                   value={promoForm.promo_banner_url}
                   onChange={(e) => setPromoForm({ ...promoForm, promo_banner_url: e.target.value })}
-                  placeholder="/women/western-wear or /shop"
+                  placeholder="/category/everyday-jewellery or /shop"
                   className="w-full px-3 py-2 border border-neutral-300 rounded-xl focus:outline-none focus:border-black font-mono text-[11px]"
                 />
               </div>
@@ -756,6 +819,104 @@ export default function HeroBannersAdminPage() {
 
                 <Button type="submit" disabled={isSavingPromo}>
                   {isSavingPromo ? 'Saving Settings...' : 'Save Promo Banner'}
+                </Button>
+              </div>
+            </div>
+
+          </div>
+        </form>
+      </Card>
+
+      {/* SECTION 5: WATCHES CLICKABLE BANNER (BEFORE WHY CHOOSE ARILHA) */}
+      <Card title="Homepage Clickable Watches Banner Section" subtitle="Control title, subtitle, image background, click-through redirect URL, and display status for the Watches banner before 'Why Choose Arilha?'">
+        <form onSubmit={handleSaveWatch} className="p-4 space-y-4 text-xs">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+            
+            {/* Banner Preview */}
+            <div className="relative w-full sm:w-64 aspect-[21/7] bg-neutral-950 border border-neutral-200 rounded-xl overflow-hidden shrink-0 flex items-center justify-center p-3 text-white">
+              <Image
+                src={watchForm.watch_banner_image || 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1600&auto=format&fit=crop'}
+                alt="Watch Banner Preview"
+                fill
+                className="object-cover opacity-60"
+              />
+              <div className="relative z-10 text-center">
+                <span className="text-[9px] font-bold text-[#D4A86A] uppercase block">WATCHES</span>
+                <p className="text-[11px] font-bold uppercase line-clamp-1">{watchForm.watch_banner_title}</p>
+              </div>
+            </div>
+
+            {/* Inputs & Controls */}
+            <div className="flex-1 space-y-3 w-full">
+              <div className="flex items-center gap-3">
+                <label className="cursor-pointer px-4 py-2 bg-neutral-100 hover:bg-neutral-200 rounded-xl font-bold border border-neutral-300 flex items-center space-x-2 shrink-0">
+                  <Upload className="w-4 h-4" />
+                  <span>{isUploadingWatch ? 'Uploading Watch Banner...' : 'Upload Watch Banner Image'}</span>
+                  <input type="file" accept="image/*" onChange={handleWatchImageUpload} className="hidden" />
+                </label>
+                <span className="text-[10px] text-neutral-400">Or paste image URL below</span>
+              </div>
+
+              <div>
+                <label className="font-bold text-neutral-700 block mb-1">Banner Image URL</label>
+                <input
+                  type="text"
+                  value={watchForm.watch_banner_image}
+                  onChange={(e) => setWatchForm({ ...watchForm, watch_banner_image: e.target.value })}
+                  placeholder="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1600&auto=format&fit=crop"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-xl focus:outline-none focus:border-black font-mono text-[11px]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-neutral-700 block mb-1">Banner Headline Title</label>
+                  <input
+                    type="text"
+                    value={watchForm.watch_banner_title}
+                    onChange={(e) => setWatchForm({ ...watchForm, watch_banner_title: e.target.value })}
+                    placeholder="EXQUISITE WATCHES & TIMEPIECES"
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-xl focus:outline-none focus:border-black text-xs font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-neutral-700 block mb-1">Banner Subtitle / Tagline</label>
+                  <input
+                    type="text"
+                    value={watchForm.watch_banner_subtitle}
+                    onChange={(e) => setWatchForm({ ...watchForm, watch_banner_subtitle: e.target.value })}
+                    placeholder="Waterproof, Anti-Tarnish Precision Engineering for Modern Style."
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-xl focus:outline-none focus:border-black text-xs"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-neutral-700 block mb-1">Click-Through Redirect URL</label>
+                <input
+                  type="text"
+                  value={watchForm.watch_banner_url}
+                  onChange={(e) => setWatchForm({ ...watchForm, watch_banner_url: e.target.value })}
+                  placeholder="/category/watches"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-xl focus:outline-none focus:border-black font-mono text-[11px]"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div className="flex items-center space-x-2">
+                  <label className="font-bold text-neutral-700">Display Status:</label>
+                  <select
+                    value={watchForm.watch_banner_status}
+                    onChange={(e) => setWatchForm({ ...watchForm, watch_banner_status: e.target.value })}
+                    className="px-3 py-1.5 border border-neutral-300 rounded-lg text-xs font-bold bg-white"
+                  >
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="DISABLED">DISABLED</option>
+                  </select>
+                </div>
+
+                <Button type="submit" disabled={isSavingWatch}>
+                  {isSavingWatch ? 'Saving Settings...' : 'Save Watch Banner'}
                 </Button>
               </div>
             </div>
@@ -826,18 +987,41 @@ export default function HeroBannersAdminPage() {
                 </div>
               </div>
 
+              <div className="space-y-1.5 p-3 bg-amber-50/50 rounded-xl border border-amber-200">
+                <label className="font-bold text-neutral-800 block text-xs">Link to Collection (Database Driven)</label>
+                <select
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-xl bg-white text-xs font-bold"
+                  onChange={(e) => {
+                    const slug = e.target.value;
+                    if (slug) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        button_url: `/collections/${slug}`,
+                      }));
+                    }
+                  }}
+                >
+                  <option value="">-- Or Select Collection --</option>
+                  {dbCollections.map((col) => (
+                    <option key={col.id} value={col.slug}>
+                      {col.name} (/collections/{col.slug})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <Input
                   label="Button Text"
                   value={formData.button_text || ''}
                   onChange={(e) => setFormData({ ...formData, button_text: e.target.value })}
-                  placeholder="SHOP TRADITIONAL"
+                  placeholder="SHOP NOW"
                 />
                 <Input
                   label="Button Link URL"
                   value={formData.button_url || ''}
                   onChange={(e) => setFormData({ ...formData, button_url: e.target.value })}
-                  placeholder="/women/traditional-wear"
+                  placeholder="/collections/diwali"
                 />
               </div>
 
