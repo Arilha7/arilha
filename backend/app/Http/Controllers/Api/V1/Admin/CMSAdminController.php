@@ -333,7 +333,6 @@ class CMSAdminController extends Controller
             'image_url' => 'required|string',
             'link_url' => 'nullable|string|max:255',
             'sort_order' => 'nullable|integer',
-            'status' => 'required|in:ACTIVE,DISABLED',
         ]);
 
         $id = DB::table('lifestyle_slides')->insertGetId([
@@ -342,15 +341,22 @@ class CMSAdminController extends Controller
             'image_url' => $request->input('image_url'),
             'link_url' => $request->input('link_url', '/shop'),
             'sort_order' => $request->input('sort_order', 0),
-            'status' => $request->input('status', 'ACTIVE'),
+            'status' => 'ACTIVE',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
+        $slide = DB::table('lifestyle_slides')->where('id', $id)->first();
+        if ($slide) {
+            $slide->image_display_url = str_starts_with($slide->image_url, 'http') ? $slide->image_url : asset('storage/' . ltrim($slide->image_url, '/'));
+            $slide->is_active = 1;
+            $slide->status = 'ACTIVE';
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Lifestyle slide created successfully.',
-            'data' => DB::table('lifestyle_slides')->where('id', $id)->first(),
+            'data' => $slide,
         ], 201);
     }
 
@@ -361,15 +367,28 @@ class CMSAdminController extends Controller
             return response()->json(['success' => false, 'message' => 'Slide not found.'], 404);
         }
 
-        $data = $request->only(['title', 'subtitle', 'image_url', 'link_url', 'sort_order', 'status']);
+        $data = [];
+        if ($request->has('title')) $data['title'] = $request->input('title');
+        if ($request->has('subtitle')) $data['subtitle'] = $request->input('subtitle');
+        if ($request->has('image_url')) $data['image_url'] = $request->input('image_url');
+        if ($request->has('link_url')) $data['link_url'] = $request->input('link_url');
+        if ($request->has('sort_order')) $data['sort_order'] = $request->input('sort_order');
+        $data['status'] = 'ACTIVE';
         $data['updated_at'] = now();
 
         DB::table('lifestyle_slides')->where('id', $id)->update($data);
 
+        $updated = DB::table('lifestyle_slides')->where('id', $id)->first();
+        if ($updated) {
+            $updated->image_display_url = str_starts_with($updated->image_url, 'http') ? $updated->image_url : asset('storage/' . ltrim($updated->image_url, '/'));
+            $updated->is_active = 1;
+            $updated->status = 'ACTIVE';
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Lifestyle slide updated successfully.',
-            'data' => DB::table('lifestyle_slides')->where('id', $id)->first(),
+            'data' => $updated,
         ], 200);
     }
 

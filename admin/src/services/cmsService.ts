@@ -33,6 +33,7 @@ export interface LifestyleSlide {
   image_url: string;
   link_url?: string | null;
   sort_order?: number;
+  status?: 'ACTIVE' | 'DISABLED';
   is_active?: boolean | number;
 }
 

@@ -80,9 +80,13 @@ export const LifestyleCarousel: React.FC<LifestyleCarouselProps> = ({ initialSli
         .getLifestyleSlides()
         .then((res) => {
           if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-            const active = res.data.filter((s) => Number(s.is_active) === 1);
-            if (active.length > 0) {
-              setSlides(active.sort((a, b) => a.sort_order - b.sort_order));
+            const validSlides = res.data.map((s) => ({
+              ...s,
+              image_url: s.image_url || (s as any).image_display_url || '',
+            })).filter((s) => s.image_url !== '');
+
+            if (validSlides.length > 0) {
+              setSlides(validSlides.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
             }
           }
         })

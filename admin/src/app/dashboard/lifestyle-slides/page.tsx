@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Plus, Edit2, Trash2, Eye, EyeOff, MoveUp, MoveDown, Image as ImageIcon, Link as LinkIcon, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Image as ImageIcon, Link as LinkIcon, Loader2, Upload, X } from 'lucide-react';
 import { cmsService, LifestyleSlide } from '@/services/cmsService';
+import { mediaService } from '@/services/mediaService';
 
 export default function AdminLifestyleSlidesPage() {
   const [slides, setSlides] = useState<LifestyleSlide[]>([]);
@@ -11,6 +12,7 @@ export default function AdminLifestyleSlidesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingSlide, setEditingSlide] = useState<LifestyleSlide | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<Partial<LifestyleSlide>>({
@@ -19,6 +21,7 @@ export default function AdminLifestyleSlidesPage() {
     image_url: '',
     link_url: '',
     sort_order: 1,
+    status: 'ACTIVE',
     is_active: 1,
   });
 
@@ -48,6 +51,7 @@ export default function AdminLifestyleSlidesPage() {
       image_url: '',
       link_url: '',
       sort_order: slides.length + 1,
+      status: 'ACTIVE',
       is_active: 1,
     });
     setModalOpen(true);
@@ -61,7 +65,8 @@ export default function AdminLifestyleSlidesPage() {
       image_url: slide.image_url,
       link_url: slide.link_url || '',
       sort_order: slide.sort_order || 1,
-      is_active: Number(slide.is_active),
+      status: 'ACTIVE',
+      is_active: 1,
     });
     setModalOpen(true);
   };
@@ -76,14 +81,22 @@ export default function AdminLifestyleSlidesPage() {
     }
   };
 
-  const handleToggleActive = async (slide: LifestyleSlide) => {
-    if (!slide.id) return;
+  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
     try {
-      const newStatus = Number(slide.is_active) === 1 ? 0 : 1;
-      await cmsService.updateLifestyleSlide(slide.id, { is_active: newStatus });
-      fetchSlides();
-    } catch (err) {
-      alert('Failed to update status');
+      const res = await mediaService.uploadImage(file, 'cms');
+      if (res.success && res.data?.url) {
+        setFormData((prev) => ({ ...prev, image_url: res.data!.url }));
+      } else {
+        alert(res.message || 'Image upload failed');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Image upload failed');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -96,10 +109,16 @@ export default function AdminLifestyleSlidesPage() {
 
     try {
       setSubmitting(true);
+      const payload = {
+        ...formData,
+        status: 'ACTIVE' as const,
+        is_active: 1,
+      };
+
       if (editingSlide && editingSlide.id) {
-        await cmsService.updateLifestyleSlide(editingSlide.id, formData);
+        await cmsService.updateLifestyleSlide(editingSlide.id, payload);
       } else {
-        await cmsService.createLifestyleSlide(formData);
+        await cmsService.createLifestyleSlide(payload);
       }
       setModalOpen(false);
       fetchSlides();
@@ -145,9 +164,7 @@ export default function AdminLifestyleSlidesPage() {
           {slides.map((slide) => (
             <div
               key={slide.id}
-              className={`relative bg-white rounded-2xl border transition-all overflow-hidden shadow-xs ${
-                Number(slide.is_active) === 1 ? 'border-neutral-200' : 'border-neutral-200 opacity-60 bg-neutral-50'
-              }`}
+              className="relative bg-white rounded-2xl border border-neutral-200 transition-all overflow-hidden shadow-xs hover:shadow-md"
             >
               <div className="relative h-48 bg-neutral-100">
                 <Image
@@ -159,15 +176,6 @@ export default function AdminLifestyleSlidesPage() {
                 <span className="absolute top-3 left-3 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">
                   Order #{slide.sort_order}
                 </span>
-                <button
-                  onClick={() => handleToggleActive(slide)}
-                  className={`absolute top-3 right-3 p-1.5 rounded-full shadow-md text-xs transition-colors ${
-                    Number(slide.is_active) === 1 ? 'bg-emerald-500 text-white' : 'bg-neutral-600 text-white'
-                  }`}
-                  title={Number(slide.is_active) === 1 ? 'Active (Click to disable)' : 'Disabled (Click to enable)'}
-                >
-                  {Number(slide.is_active) === 1 ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                </button>
               </div>
 
               <div className="p-4 space-y-2">
@@ -181,10 +189,8 @@ export default function AdminLifestyleSlidesPage() {
                 )}
                 
                 <div className="flex items-center justify-between pt-3 border-t border-neutral-100">
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                    Number(slide.is_active) === 1 ? 'bg-emerald-100 text-emerald-800' : 'bg-neutral-100 text-neutral-600'
-                  }`}>
-                    {Number(slide.is_active) === 1 ? 'Active' : 'Disabled'}
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    Live Active
                   </span>
                   
                   <div className="flex items-center space-x-1">
@@ -248,16 +254,71 @@ export default function AdminLifestyleSlidesPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-1">
-                  Image URL *
+                  Slide Image *
                 </label>
-                <input
-                  type="url"
-                  required
-                  value={formData.image_url || ''}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  placeholder="https://images.unsplash.com/photo-..."
-                  className="w-full text-sm border border-neutral-300 rounded-xl p-2.5 focus:ring-2 focus:ring-neutral-900 focus:outline-none"
-                />
+                
+                <div className="space-y-3">
+                  {/* File Upload Button */}
+                  <div>
+                    <label className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-neutral-900 hover:bg-black text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-2xs w-full">
+                      {uploadingImage ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-white" />
+                          <span>Uploading File...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 text-white" />
+                          <span>Choose & Upload Image File from Device</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={uploadingImage}
+                        onChange={handleImageFileUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  {/* Manual URL / Path Input */}
+                  <div>
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+                      Or Enter Image URL / Local Path:
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      value={formData.image_url || ''}
+                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                      placeholder="e.g. /images/hero1_image.png or https://..."
+                      className="w-full text-sm border border-neutral-300 rounded-xl p-2.5 focus:ring-2 focus:ring-neutral-900 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Image Preview Box */}
+                  {formData.image_url && (
+                    <div className="relative h-32 rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100">
+                      <img
+                        src={formData.image_url}
+                        alt="Slide Preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, image_url: '' })}
+                        className="absolute top-2 right-2 bg-black/75 hover:bg-black text-white p-1 rounded-full text-xs transition-colors"
+                        title="Remove image"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -273,33 +334,17 @@ export default function AdminLifestyleSlidesPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-1">
-                    Display Order
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.sort_order || 1}
-                    onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 1 })}
-                    className="w-full text-sm border border-neutral-300 rounded-xl p-2.5 focus:ring-2 focus:ring-neutral-900 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-1">
-                    Status
-                  </label>
-                  <select
-                    value={formData.is_active ? 1 : 0}
-                    onChange={(e) => setFormData({ ...formData, is_active: parseInt(e.target.value) })}
-                    className="w-full text-sm border border-neutral-300 rounded-xl p-2.5 focus:ring-2 focus:ring-neutral-900 focus:outline-none bg-white"
-                  >
-                    <option value={1}>Active</option>
-                    <option value={0}>Disabled</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-1">
+                  Display Order
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.sort_order || 1}
+                  onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 1 })}
+                  className="w-full text-sm border border-neutral-300 rounded-xl p-2.5 focus:ring-2 focus:ring-neutral-900 focus:outline-none"
+                />
               </div>
 
               <div className="flex items-center justify-end space-x-3 pt-4 border-t">

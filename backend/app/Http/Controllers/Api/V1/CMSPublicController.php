@@ -9,6 +9,37 @@ use Illuminate\Support\Facades\DB;
 class CMSPublicController extends Controller
 {
     /**
+     * Helper to format relative/absolute image and video URLs for public API.
+     */
+    private function formatUrl(?string $path): string
+    {
+        if (!$path) {
+            return '';
+        }
+
+        // Return external URLs as is
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        // Return relative static asset paths as is (e.g. /images/...)
+        if (str_starts_with($path, '/images/') || str_starts_with($path, 'images/')) {
+            return '/' . ltrim($path, '/');
+        }
+
+        // If path already starts with storage/ or /storage/
+        if (str_starts_with($path, '/storage/')) {
+            return asset(ltrim($path, '/'));
+        }
+        if (str_starts_with($path, 'storage/')) {
+            return asset($path);
+        }
+
+        // Default storage path resolution
+        return asset('storage/' . ltrim($path, '/'));
+    }
+
+    /**
      * Get public store settings (logo, contact info, announcement, shipping threshold).
      */
     public function settings(): JsonResponse
@@ -18,9 +49,8 @@ class CMSPublicController extends Controller
 
         foreach ($settingsRaw as $s) {
             $value = $s->value_content;
-            // Resolve relative storage path for logo & promo banner
-            if (in_array($s->key_name, ['store_logo', 'promo_banner_image']) && $value && !str_starts_with($value, 'http') && !str_starts_with($value, '/images/')) {
-                $value = asset('storage/' . ltrim($value, '/'));
+            if (in_array($s->key_name, ['store_logo', 'promo_banner_image']) && $value) {
+                $value = $this->formatUrl($value);
             }
             $settings[$s->key_name] = $value;
         }
@@ -62,17 +92,19 @@ class CMSPublicController extends Controller
             ->get();
 
         $formatted = $banners->map(function ($b) {
+            $img = $this->formatUrl($b->image_url);
+            $mobileImg = !empty($b->mobile_image_url) ? $this->formatUrl($b->mobile_image_url) : $img;
             return [
                 'id' => $b->id,
-                'title' => $b->title,
+                'title' => $b->title ?? '',
                 'subtitle' => $b->subtitle ?? '',
-                'image_url' => str_starts_with($b->image_url, 'http') ? $b->image_url : asset('storage/' . ltrim($b->image_url, '/')),
-                'mobile_image_url' => !empty($b->mobile_image_url)
-                    ? (str_starts_with($b->mobile_image_url, 'http') ? $b->mobile_image_url : asset('storage/' . ltrim($b->mobile_image_url, '/')))
-                    : (str_starts_with($b->image_url, 'http') ? $b->image_url : asset('storage/' . ltrim($b->image_url, '/'))),
+                'image_url' => $img,
+                'mobile_image_url' => $mobileImg,
                 'button_text' => $b->button_text ?? 'SHOP NOW',
                 'button_url' => $b->button_url ?? '/shop',
                 'sort_order' => $b->sort_order,
+                'is_active' => 1,
+                'status' => 'ACTIVE',
             ];
         });
 
@@ -124,8 +156,8 @@ class CMSPublicController extends Controller
             ->latest('id')
             ->first();
 
-        if ($popup && $popup->image_url && !str_starts_with($popup->image_url, 'http')) {
-            $popup->image_url = asset('storage/' . ltrim($popup->image_url, '/'));
+        if ($popup && $popup->image_url) {
+            $popup->image_url = $this->formatUrl($popup->image_url);
         }
 
         return response()->json([
@@ -145,11 +177,11 @@ class CMSPublicController extends Controller
             ->get();
 
         $formatted = $reels->map(function ($r) {
-            if ($r->video_url && !str_starts_with($r->video_url, 'http')) {
-                $r->video_url = asset('storage/' . ltrim($r->video_url, '/'));
+            if ($r->video_url) {
+                $r->video_url = $this->formatUrl($r->video_url);
             }
-            if ($r->poster_url && !str_starts_with($r->poster_url, 'http')) {
-                $r->poster_url = asset('storage/' . ltrim($r->poster_url, '/'));
+            if ($r->poster_url) {
+                $r->poster_url = $this->formatUrl($r->poster_url);
             }
             return $r;
         });
@@ -171,7 +203,11 @@ class CMSPublicController extends Controller
             ->get();
 
         $formatted = $slides->map(function ($s) {
-            $s->image_display_url = str_starts_with($s->image_url, 'http') ? $s->image_url : asset('storage/' . ltrim($s->image_url, '/'));
+            $url = $this->formatUrl($s->image_url);
+            $s->image_url = $url;
+            $s->image_display_url = $url;
+            $s->is_active = 1;
+            $s->status = 'ACTIVE';
             return $s;
         });
 
@@ -198,3 +234,4 @@ class CMSPublicController extends Controller
         ], 200);
     }
 }
+
